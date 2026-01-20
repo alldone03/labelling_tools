@@ -1,18 +1,18 @@
-import React, {useState} from 'react'
+import React, { useState, useEffect } from 'react'
 import './SuggestLabelNamesPopup.scss'
-import {AppState} from '../../../store';
-import {connect} from 'react-redux';
-import {updateRejectedSuggestedLabelList, updateSuggestedLabelList} from '../../../store/ai/actionCreators';
-import {GenericYesNoPopup} from '../GenericYesNoPopup/GenericYesNoPopup';
-import {PopupActions} from '../../../logic/actions/PopupActions';
-import {AISelector} from '../../../store/selectors/AISelector';
+import { AppState } from '../../../store';
+import { connect } from 'react-redux';
+import { updateRejectedSuggestedLabelList, updateSuggestedLabelList } from '../../../store/ai/actionCreators';
+import { GenericYesNoPopup } from '../GenericYesNoPopup/GenericYesNoPopup';
+import { PopupActions } from '../../../logic/actions/PopupActions';
+import { AISelector } from '../../../store/selectors/AISelector';
 import Scrollbars from 'react-custom-scrollbars-2';
-import {LabelName} from '../../../store/labels/types';
-import {updateLabelNames} from '../../../store/labels/actionCreators';
-import {LabelsSelector} from '../../../store/selectors/LabelsSelector';
+import { LabelName } from '../../../store/labels/types';
+import { updateLabelNames } from '../../../store/labels/actionCreators';
+import { LabelsSelector } from '../../../store/selectors/LabelsSelector';
 import { v4 as uuidv4 } from 'uuid';
-import {ArrayUtil} from '../../../utils/ArrayUtil';
-import {Settings} from '../../../settings/Settings';
+import { ArrayUtil } from '../../../utils/ArrayUtil';
+import { Settings } from '../../../settings/Settings';
 
 interface SelectableName {
     name: string;
@@ -43,6 +43,19 @@ const SuggestLabelNamesPopup: React.FC<IProps> = (
 
     const [selectAllFlag, setSelectAllFlag] = useState(false);
     const [labelNames, setLabelNames] = useState(mapNamesToSelectableNames(AISelector.getSuggestedLabelList()));
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+                onAccept();
+            } else if (event.key === 'a' || event.key === 'A') {
+                selectAllFlag ? deselectAll() : selectAll();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    });
 
     const onAccept = () => {
         updateLabelNames(extractSelectedNames().reduce((acc: LabelName[], entry: string, index: number) => {
@@ -97,7 +110,7 @@ const SuggestLabelNamesPopup: React.FC<IProps> = (
         setLabelNames(nextLabelNames);
 
         const nextSelectAllFlag: boolean = nextLabelNames.reduce((acc: boolean, entry: SelectableName) => {
-            return(acc && entry.flag)
+            return (acc && entry.flag)
         }, true);
         setSelectAllFlag(nextSelectAllFlag);
     };
@@ -148,7 +161,7 @@ const SuggestLabelNamesPopup: React.FC<IProps> = (
     };
 
     const renderContent = () => {
-        return(<div className='SuggestLabelNamesPopupContent'>
+        return (<div className='SuggestLabelNamesPopupContent'>
             <div className='Message'>
                 We found objects of classes that are not yet included in the list of labels. Select the names you
                 would like to add. This will help to speed up the labeling process.
@@ -184,7 +197,7 @@ const SuggestLabelNamesPopup: React.FC<IProps> = (
         </div>);
     };
 
-    return(
+    return (
         <GenericYesNoPopup
             title={'New classes found'}
             renderContent={renderContent}

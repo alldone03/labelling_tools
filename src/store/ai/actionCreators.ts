@@ -46,6 +46,15 @@ export function updatePoseDetectorStatus(isPoseDetectorLoaded: boolean): AIActio
     }
 }
 
+export function updateAIBackendObjectDetectorStatus(isAIBackendObjectDetectorLoaded: boolean): AIActionTypes {
+    return {
+        type: Action.UPDATE_AI_BACKEND_OBJECT_DETECTOR_STATUS,
+        payload: {
+            isAIBackendObjectDetectorLoaded,
+        }
+    }
+}
+
 export function updateDisabledAIFlag(isAIDisabled: boolean): AIActionTypes {
     return {
         type: Action.UPDATE_DISABLED_AI_FLAG,

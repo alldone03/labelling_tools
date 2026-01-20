@@ -1,18 +1,21 @@
-import React, {useState} from 'react';
-import {PopupActions} from '../../../logic/actions/PopupActions';
-import {GenericYesNoPopup} from '../GenericYesNoPopup/GenericYesNoPopup';
-import {SSDObjectDetector} from '../../../ai/SSDObjectDetector';
+import React, { useState } from 'react';
+import { PopupActions } from '../../../logic/actions/PopupActions';
+import { GenericYesNoPopup } from '../GenericYesNoPopup/GenericYesNoPopup';
+import { SSDObjectDetector } from '../../../ai/SSDObjectDetector';
 import './LoadModelPopup.scss'
-import {ClipLoader} from 'react-spinners';
-import {AIModel} from '../../../data/enums/AIModel';
-import {PoseDetector} from '../../../ai/PoseDetector';
-import {findLast} from 'lodash';
-import {CSSHelper} from '../../../logic/helpers/CSSHelper';
-import {updateActivePopupType as storeUpdateActivePopupType} from '../../../store/general/actionCreators';
-import {AppState} from '../../../store';
-import {connect} from 'react-redux';
-import {PopupWindowType} from '../../../data/enums/PopupWindowType';
-import {GeneralActionTypes} from '../../../store/general/types';
+import { ClipLoader } from 'react-spinners';
+import { AIModel } from '../../../data/enums/AIModel';
+import { PoseDetector } from '../../../ai/PoseDetector';
+import { AIBackendObjectDetectionActions } from '../../../logic/actions/AIBackendObjectDetectionActions';
+import { backendService } from '../../../services/backendService';
+import { findLast } from 'lodash';
+import { CSSHelper } from '../../../logic/helpers/CSSHelper';
+import { updateActivePopupType as storeUpdateActivePopupType } from '../../../store/general/actionCreators';
+import { AppState } from '../../../store';
+import { connect } from 'react-redux';
+import { PopupWindowType } from '../../../data/enums/PopupWindowType';
+import { GeneralActionTypes } from '../../../store/general/types';
+import { updateAIBackendObjectDetectorStatus } from '../../../store/ai/actionCreators';
 
 interface SelectableModel {
     model: AIModel,
@@ -21,6 +24,11 @@ interface SelectableModel {
 }
 
 const models: SelectableModel[] = [
+    {
+        model: AIModel.BACKEND_OBJECT_DETECTION,
+        name: 'YOLO (Backend) - object detection using server',
+        flag: false
+    },
     {
         model: AIModel.YOLO_V5_OBJECT_DETECTION,
         name: 'YOLOv5 - object detection using rectangles',
@@ -40,11 +48,13 @@ const models: SelectableModel[] = [
 
 interface IProps {
     updateActivePopupType: (activePopupType: PopupWindowType) => GeneralActionTypes;
+    updateAIBackendObjectDetectorStatus: (isLoaded: boolean) => any;
 }
 
-const LoadModelPopup: React.FC<IProps> = ({ updateActivePopupType }) => {
+const LoadModelPopup: React.FC<IProps> = ({ updateActivePopupType, updateAIBackendObjectDetectorStatus }) => {
     const [modelIsLoadingStatus, setModelIsLoadingStatus] = useState(false);
     const [selectedModelToLoad, updateSelectedModelToLoad] = useState(models);
+    const [backendUrl, setBackendUrl] = useState(backendService.getBaseUrl());
 
     const extractSelectedModel = (): AIModel => {
         const model: SelectableModel = findLast(selectedModelToLoad, { flag: true });
@@ -55,9 +65,25 @@ const LoadModelPopup: React.FC<IProps> = ({ updateActivePopupType }) => {
         }
     };
 
-    const onAccept = () => {
+    const onAccept = async () => {
         setModelIsLoadingStatus(true);
         switch (extractSelectedModel()) {
+            case AIModel.BACKEND_OBJECT_DETECTION:
+                // Update backend URL
+                backendService.setBaseUrl(backendUrl);
+
+                // Check backend availability
+                const isBackendAvailable = await backendService.healthCheck();
+                if (isBackendAvailable) {
+                    updateAIBackendObjectDetectorStatus(true);
+                    // Trigger detection for active image
+                    AIBackendObjectDetectionActions.detectRectsForActiveImage();
+                    PopupActions.close();
+                } else {
+                    alert(`Backend server tidak tersedia di ${backendUrl}. Pastikan server berjalan.`);
+                    setModelIsLoadingStatus(false);
+                }
+                break;
             case AIModel.POSE_DETECTION:
                 PoseDetector.loadModel(() => {
                     PopupActions.close();
@@ -124,6 +150,32 @@ const LoadModelPopup: React.FC<IProps> = ({ updateActivePopupType }) => {
                 your privacy, we decided not to send your images to the server, but instead bring AI to you. Make sure
                 that you have a fast and stable connection - it may take a while to load the model.
             </div>
+
+            {extractSelectedModel() === AIModel.BACKEND_OBJECT_DETECTION && (
+                <div style={{ marginTop: '10px', padding: '10px', background: '#f5f5f5', borderRadius: '5px', fontSize: '12px' }}>
+                    <div style={{ marginBottom: '10px' }}>
+                        <strong>Backend URL:</strong>
+                        <input
+                            type="text"
+                            value={backendUrl}
+                            onChange={(e) => setBackendUrl(e.target.value)}
+                            style={{ width: '100%', padding: '5px', marginTop: '5px', color: 'black' }}
+                        />
+                    </div>
+                    <div style={{ color: '#666' }}>
+                        <strong>Info:</strong> Backend harus mengembalikan respon JSON dengan format:
+                        <pre style={{ background: '#eee', padding: '5px', marginTop: '5px' }}>
+                            {`{
+  "success": true,
+  "annotations": [
+    { "bbox": [x, y, w, h], "class": "label", "score": 0.9 }
+  ]
+}`}
+                        </pre>
+                    </div>
+                </div>
+            )}
+
             <div className='Companion'>
                 {modelIsLoadingStatus ?
                     <ClipLoader
@@ -154,7 +206,8 @@ const LoadModelPopup: React.FC<IProps> = ({ updateActivePopupType }) => {
 };
 
 const mapDispatchToProps = {
-    updateActivePopupType: storeUpdateActivePopupType
+    updateActivePopupType: storeUpdateActivePopupType,
+    updateAIBackendObjectDetectorStatus: updateAIBackendObjectDetectorStatus
 };
 
 const mapStateToProps = (state: AppState) => ({});

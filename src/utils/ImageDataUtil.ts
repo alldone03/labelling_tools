@@ -17,7 +17,8 @@ export class ImageDataUtil {
             isVisitedByYOLOObjectDetector: false,
             isVisitedBySSDObjectDetector: false,
             isVisitedByPoseDetector: false,
-            isVisitedByRoboflowAPI: false
+            isVisitedByRoboflowAPI: false,
+            isVisitedByObjectDetector: false
         }
     }
 

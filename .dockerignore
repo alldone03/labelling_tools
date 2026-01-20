@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+package-lock.json
+yarn.lock
+.git
+.vscode
+.idea
+build
+dist
+backend/venv
+backend/__pycache__
+*.pt
+runs/

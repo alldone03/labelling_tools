@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - VITE_BACKEND_URL=http://localhost:8000
+    # depends_on:
+    #   - backend
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - ./backend:/app
+  #     # Mount the custom YOLO model from host to container
+  #     - "D:/TMMINImpro/ImproTYT/ModelOK/ModelCam5/Fortuner/weights/best.pt:/app/models/best.pt"
+  #   environment:
+  #     - YOLO_MODEL_PATH=/app/models/best.pt

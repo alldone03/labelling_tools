@@ -16,6 +16,9 @@ export type AIState = {
     // POSE NET LOCAL
     isPoseDetectorLoaded: boolean;
 
+    // BACKEND OBJECT DETECTOR
+    isAIBackendObjectDetectorLoaded: boolean;
+
     // ROBOFLOW API
     roboflowAPIDetails: RoboflowAPIDetails;
 
@@ -60,6 +63,13 @@ interface UpdatePoseDetectorStatus {
     }
 }
 
+interface UpdateAIBackendObjectDetectorStatus {
+    type: typeof Action.UPDATE_AI_BACKEND_OBJECT_DETECTOR_STATUS;
+    payload: {
+        isAIBackendObjectDetectorLoaded: boolean;
+    }
+}
+
 interface UpdateDisabledAIFlag {
     type: typeof Action.UPDATE_DISABLED_AI_FLAG;
     payload: {
@@ -79,5 +89,6 @@ export type AIActionTypes = UpdateSuggestedLabelList
     | UpdateSSDObjectDetectorStatus
     | UpdateYOLOV5ObjectDetectorStatus
     | UpdatePoseDetectorStatus
+    | UpdateAIBackendObjectDetectorStatus
     | UpdateDisabledAIFlag
     | UpdateRoboflowAPIDetails

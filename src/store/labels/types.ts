@@ -60,6 +60,9 @@ export type ImageData = {
 
     // ROBOFLOW API
     isVisitedByRoboflowAPI: boolean;
+
+    // Backend Object Detector
+    isVisitedByObjectDetector: boolean;
 }
 
 export type LabelsState = {
