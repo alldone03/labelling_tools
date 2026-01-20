@@ -10,6 +10,7 @@ import react from '@vitejs/plugin-react';
 export default ({ mode }: UserConfig): UserConfigExport => {
   process.env = { ...process.env, ...loadEnv(mode || 'development', process.cwd()) };
   return defineConfig({
+    base: '/labelling_tools/',
     plugins: [react()],
     build: {
       minify: 'terser',
