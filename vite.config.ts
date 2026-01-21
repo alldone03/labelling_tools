@@ -12,6 +12,14 @@ export default ({ mode }: UserConfig): UserConfigExport => {
   return defineConfig({
     base: '/labelling_tools/',
     plugins: [react()],
+    server: {
+      host: true,
+      port: 3000,
+      watch: {
+        usePolling: true,
+      },
+    },
+
     build: {
       minify: 'terser',
       sourcemap: mode === 'development',

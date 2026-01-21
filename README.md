@@ -47,20 +47,40 @@ npm start
 ```
 To ensure proper functionality of the application locally, npm `8.x.x` and node.js `v16.x.x` versions are required. More information about this problem is available in the [#16][4].
 
+
 ## 🐳 Docker Setup
 
+### Production (Single Image)
 ```bash
 # Build Docker Image
-docker build -t make-sense -f docker/Dockerfile .
+docker build -t make-sense -f Dockerfile .
 
 # Run Docker Image as Service
 docker run -dit -p 3000:3000 --restart=always --name=make-sense make-sense
-
-# Get Docker Container Logs
-docker logs make-sense
-
-# Access make-sense: http://localhost:3000/
 ```
+
+### Development Environment
+Kami menggunakan Docker Compose Profiles untuk memberikan fleksibilitas saat pengembangan.
+
+#### 1. Hanya Frontend (Default)
+Gunakan ini jika Anda hanya ingin fokus pada UI atau menggunakan modul AI browser-side.
+```bash
+docker-compose up
+```
+
+#### 2. Frontend + Backend API
+Gunakan ini jika Anda membutuhkan fitur deteksi objek via Python/YOLO backend.
+```bash
+docker-compose --profile backend up
+```
+
+#### 3. Mematikan Semua Service
+```bash
+docker-compose down
+```
+Check `.env` file untuk konfigurasi tambahan.
+
+
 
 ## ⌨️ Keyboard Shortcuts
 
