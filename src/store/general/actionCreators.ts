@@ -94,3 +94,12 @@ export function updatePerClassColorationStatus(enablePerClassColoration: boolean
         },
     };
 }
+
+export function updateFixZoomStatus(fixZoom: boolean): GeneralActionTypes {
+    return {
+        type: Action.UPDATE_FIX_ZOOM_STATUS,
+        payload: {
+            fixZoom,
+        },
+    };
+}

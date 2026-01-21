@@ -16,7 +16,8 @@ const initialState: GeneralState = {
         type: null,
         name: 'my-project-name',
     },
-    zoom: ViewPointSettings.MIN_ZOOM
+    zoom: ViewPointSettings.MIN_ZOOM,
+    fixZoom: false
 };
 
 export function generalReducer(
@@ -82,6 +83,12 @@ export function generalReducer(
             return {
                 ...state,
                 enablePerClassColoration: action.payload.enablePerClassColoration
+            }
+        }
+        case Action.UPDATE_FIX_ZOOM_STATUS: {
+            return {
+                ...state,
+                fixZoom: action.payload.fixZoom
             }
         }
         default:

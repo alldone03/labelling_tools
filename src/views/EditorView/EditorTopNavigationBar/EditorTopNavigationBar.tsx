@@ -4,7 +4,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { AppState } from '../../../store';
 import { connect } from 'react-redux';
-import { updateCrossHairVisibleStatus, updateImageDragModeStatus } from '../../../store/general/actionCreators';
+import { updateCrossHairVisibleStatus, updateImageDragModeStatus, updateFixZoomStatus } from '../../../store/general/actionCreators';
 import { GeneralSelector } from '../../../store/selectors/GeneralSelector';
 import { ViewPointSettings } from '../../../settings/ViewPointSettings';
 import { ImageButton } from '../../Common/ImageButton/ImageButton';
@@ -20,7 +20,7 @@ const BUTTON_PADDING: number = 10;
 
 const StyledTooltip = styled(({ className, ...props }: TooltipProps) => (
     <Tooltip {...props} classes={{ popper: className }} />
-  ))(({ theme }) => ({
+))(({ theme }) => ({
     [`& .${tooltipClasses.tooltip}`]: {
         backgroundColor: '#171717',
         color: '#ffffff',
@@ -29,7 +29,7 @@ const StyledTooltip = styled(({ className, ...props }: TooltipProps) => (
         maxWidth: 200,
         textAlign: 'center'
     },
-  }));
+}));
 
 const getButtonWithTooltip = (
     key: string,
@@ -66,8 +66,10 @@ interface IProps {
     activeContext: ContextType;
     updateImageDragModeStatusAction: (imageDragMode: boolean) => any;
     updateCrossHairVisibleStatusAction: (crossHairVisible: boolean) => any;
+    updateFixZoomStatusAction: (fixZoom: boolean) => any;
     imageDragMode: boolean;
     crossHairVisible: boolean;
+    fixZoom: boolean;
     activeLabelType: LabelType;
 }
 
@@ -76,8 +78,10 @@ const EditorTopNavigationBar: React.FC<IProps> = (
         activeContext,
         updateImageDragModeStatusAction,
         updateCrossHairVisibleStatusAction,
+        updateFixZoomStatusAction,
         imageDragMode,
         crossHairVisible,
+        fixZoom,
         activeLabelType
     }) => {
     const getClassName = () => {
@@ -100,6 +104,10 @@ const EditorTopNavigationBar: React.FC<IProps> = (
 
     const crossHairOnClick = () => {
         updateCrossHairVisibleStatusAction(!crossHairVisible);
+    };
+
+    const fixZoomOnClick = () => {
+        updateFixZoomStatusAction(!fixZoom);
     };
 
     const withAI = (
@@ -180,44 +188,57 @@ const EditorTopNavigationBar: React.FC<IProps> = (
                         crossHairOnClick
                     )
                 }
+                {
+                    getButtonWithTooltip(
+                        'fix-zoom',
+                        fixZoom ? 'turn-off fix zoom' : 'turn-on fix zoom',
+                        'ico/refresh.png',
+                        'fix-zoom',
+                        fixZoom,
+                        undefined,
+                        fixZoomOnClick
+                    )
+                }
             </div>
             {withAI && <div className='ButtonWrapper'>
-                    {
-                        getButtonWithTooltip(
-                            'accept-all',
-                            'accept all proposed detections',
-                            'ico/accept-all.png',
-                            'accept-all',
-                            false,
-                            undefined,
-                            () => AIActions.acceptAllSuggestedLabels(LabelsSelector.getActiveImageData())
-                        )
-                    }
-                    {
-                        getButtonWithTooltip(
-                            'reject-all',
-                            'reject all proposed detections',
-                            'ico/reject-all.png',
-                            'reject-all',
-                            false,
-                            undefined,
-                            () => AIActions.rejectAllSuggestedLabels(LabelsSelector.getActiveImageData())
-                        )
-                    }
-                </div>}
+                {
+                    getButtonWithTooltip(
+                        'accept-all',
+                        'accept all proposed detections',
+                        'ico/accept-all.png',
+                        'accept-all',
+                        false,
+                        undefined,
+                        () => AIActions.acceptAllSuggestedLabels(LabelsSelector.getActiveImageData())
+                    )
+                }
+                {
+                    getButtonWithTooltip(
+                        'reject-all',
+                        'reject all proposed detections',
+                        'ico/reject-all.png',
+                        'reject-all',
+                        false,
+                        undefined,
+                        () => AIActions.rejectAllSuggestedLabels(LabelsSelector.getActiveImageData())
+                    )
+                }
+            </div>}
         </div>
     );
 };
 
 const mapDispatchToProps = {
     updateImageDragModeStatusAction: updateImageDragModeStatus,
-    updateCrossHairVisibleStatusAction: updateCrossHairVisibleStatus
+    updateCrossHairVisibleStatusAction: updateCrossHairVisibleStatus,
+    updateFixZoomStatusAction: updateFixZoomStatus
 };
 
 const mapStateToProps = (state: AppState) => ({
     activeContext: state.general.activeContext,
     imageDragMode: state.general.imageDragMode,
     crossHairVisible: state.general.crossHairVisible,
+    fixZoom: state.general.fixZoom,
     activeLabelType: state.labels.activeLabelType
 });
 

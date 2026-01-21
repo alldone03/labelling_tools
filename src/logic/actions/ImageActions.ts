@@ -38,9 +38,30 @@ export class ImageActions {
     if (index < 0 || index > imageCount - 1) {
       return;
     } else {
-      ViewPortActions.setZoom(1);
+      const state = store.getState();
+      const fixZoom = state.general.fixZoom;
+      const currentZoom = state.general.zoom;
+      const currentRelativeScrollPosition = ViewPortActions.getRelativeScrollPosition();
+
+      if (!fixZoom) {
+        ViewPortActions.setZoom(1);
+      } else {
+          // If fixZoom is enabled, we keep the zoom level. 
+          // We might also want to restore the relative scroll position after the image is loaded.
+          // For now, setting the same zoom level again ensures consistent state.
+          ViewPortActions.setZoom(currentZoom);
+      }
+
       store.dispatch(updateActiveImageIndex(index));
       store.dispatch(updateActiveLabelId(null));
+      
+      if (fixZoom && currentRelativeScrollPosition) {
+          // We need to wait for the next render/event loop to ensure the image is loaded and dimensions are updated
+          // before we can correctly set the scroll position.
+          setTimeout(() => {
+              ViewPortActions.setScrollPosition(ViewPortActions.calculateAbsoluteScrollPosition(currentRelativeScrollPosition));
+          }, 0);
+      }
     }
   }
 

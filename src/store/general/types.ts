@@ -21,6 +21,7 @@ export type GeneralState = {
     activeContext: ContextType;
     projectData: ProjectData;
     zoom: number;
+    fixZoom: boolean;
 }
 
 interface UpdateProjectData {
@@ -93,6 +94,13 @@ interface UpdatePerClassColoration {
     }
 }
 
+interface UpdateFixZoomStatus {
+    type: typeof Action.UPDATE_FIX_ZOOM_STATUS,
+    payload: {
+        fixZoom: boolean;
+    }
+}
+
 export type GeneralActionTypes = UpdateProjectData
     | UpdateWindowSize
     | UpdateActivePopupType
@@ -103,3 +111,4 @@ export type GeneralActionTypes = UpdateProjectData
     | UpdateCrossHairVisibleStatus
     | UpdateZoom
     | UpdatePerClassColoration
+    | UpdateFixZoomStatus
