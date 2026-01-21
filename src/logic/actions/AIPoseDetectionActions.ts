@@ -100,6 +100,7 @@ export class AIPoseDetectionActions {
         const newImageData: ImageData = {
             ...imageData,
             labelPoints: imageData.labelPoints.map((labelPoint: LabelPoint) => {
+                if (!labelPoint.isCreatedByAI) return labelPoint;
                 const labelName: LabelName = findLast(LabelsSelector.getLabelNames(), {name: labelPoint.suggestedLabel});
                 return {
                     ...labelPoint,

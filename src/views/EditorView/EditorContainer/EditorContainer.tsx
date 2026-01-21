@@ -16,7 +16,6 @@ import { ContextType } from '../../../data/enums/ContextType';
 import EditorBottomNavigationBar from '../EditorBottomNavigationBar/EditorBottomNavigationBar';
 import EditorTopNavigationBar from '../EditorTopNavigationBar/EditorTopNavigationBar';
 import { ProjectType } from '../../../data/enums/ProjectType';
-import { AIBackendObjectDetectionActions } from '../../../logic/actions/AIBackendObjectDetectionActions';
 
 interface IProps {
     windowSize: ISize;
@@ -24,8 +23,6 @@ interface IProps {
     imagesData: ImageData[];
     activeContext: ContextType;
     projectType: ProjectType;
-    isAIBackendObjectDetectorLoaded: boolean;
-    isAIDisabled: boolean;
 }
 
 const EditorContainer: React.FC<IProps> = (props) => {
@@ -38,13 +35,6 @@ const EditorContainer: React.FC<IProps> = (props) => {
     } = props;
     const [leftTabStatus, setLeftTabStatus] = useState(true);
     const [rightTabStatus, setRightTabStatus] = useState(true);
-
-    // Auto-trigger backend detection when image changes
-    React.useEffect(() => {
-        if (props.isAIBackendObjectDetectorLoaded && !props.isAIDisabled) {
-            AIBackendObjectDetectionActions.detectRectsForActiveImage();
-        }
-    }, [props.activeImageIndex, props.isAIBackendObjectDetectorLoaded, props.isAIDisabled]);
 
     const calculateEditorSize = (): ISize => {
         if (windowSize) {
@@ -156,9 +146,7 @@ const mapStateToProps = (state: AppState) => ({
     activeImageIndex: state.labels.activeImageIndex,
     imagesData: state.labels.imagesData,
     activeContext: state.general.activeContext,
-    projectType: state.general.projectData.type,
-    isAIBackendObjectDetectorLoaded: state.ai.isAIBackendObjectDetectorLoaded,
-    isAIDisabled: state.ai.isAIDisabled
+    projectType: state.general.projectData.type
 });
 
 export default connect(

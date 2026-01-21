@@ -85,6 +85,7 @@ export class AIYOLOObjectDetectionActions {
         const newImageData: ImageData = {
             ...imageData,
             labelRects: imageData.labelRects.map((labelRect: LabelRect) => {
+                if (!labelRect.isCreatedByAI) return labelRect;
                 const labelName: LabelName = findLast(LabelsSelector.getLabelNames(), {name: labelRect.suggestedLabel});
                 return {
                     ...labelRect,
