@@ -49,7 +49,7 @@ const EditorContainer: React.FC<IProps> = (props) => {
         else
             return null;
     };
-
+    // #
     const leftSideBarButtonOnClick = () => {
         if (!leftTabStatus)
             ContextManager.switchCtx(ContextType.LEFT_NAVBAR);
