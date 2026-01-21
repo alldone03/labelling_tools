@@ -17,7 +17,8 @@ const initialState: GeneralState = {
         name: 'my-project-name',
     },
     zoom: ViewPointSettings.MIN_ZOOM,
-    fixZoom: false
+    fixZoom: true,
+    moveMode: false
 };
 
 export function generalReducer(
@@ -91,6 +92,11 @@ export function generalReducer(
                 fixZoom: action.payload.fixZoom
             }
         }
+        case Action.UPDATE_MOVE_MODE_STATUS:
+            return {
+                ...state,
+                moveMode: action.payload.moveMode,
+            };
         default:
             return state;
     }

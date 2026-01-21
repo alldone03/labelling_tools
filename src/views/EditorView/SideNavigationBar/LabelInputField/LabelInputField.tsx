@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { ISize } from '../../../../interfaces/ISize';
 import './LabelInputField.scss';
 import classNames from 'classnames';
@@ -41,14 +41,15 @@ interface IState {
     selectedIndex: number;
 }
 
-class LabelInputField extends React.Component<IProps, IState> {
+class LabelInputField extends Component<IProps, IState> {
+
     private dropdownOptionHeight: number = 30;
     private dropdownOptionCount: number = 6;
     private dropdownMargin: number = 4;
     private dropdownLabel: HTMLDivElement;
     private dropdown: HTMLDivElement;
 
-    public constructor(props) {
+    public constructor(props: IProps) {
         super(props);
         this.state = {
             animate: false,
@@ -61,7 +62,18 @@ class LabelInputField extends React.Component<IProps, IState> {
     public componentDidMount(): void {
         requestAnimationFrame(() => {
             this.setState({ animate: true });
+            if (this.props.isActive && !this.props.value) {
+                this.openDropdown();
+            }
         });
+    }
+
+    public componentDidUpdate(prevProps: Readonly<IProps>): void {
+        if (this.props.isActive && !prevProps.isActive && !this.props.value) {
+            requestAnimationFrame(() => {
+                this.openDropdown();
+            });
+        }
     }
 
     private getClassName() {
@@ -70,7 +82,7 @@ class LabelInputField extends React.Component<IProps, IState> {
             {
                 'loaded': this.state.animate,
                 'active': this.props.isActive,
-                'highlighted': this.props.isHighlighted
+                // 'highlighted': this.props.isHighlighted
             }
         );
     }

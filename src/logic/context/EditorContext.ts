@@ -11,6 +11,9 @@ import {Direction} from "../../data/enums/Direction";
 import {PlatformUtil} from "../../utils/PlatformUtil";
 import {LabelActions} from "../actions/LabelActions";
 import {LineRenderEngine} from "../render/LineRenderEngine";
+import {store} from "../../index";
+import {updateMoveModeStatus} from "../../store/general/actionCreators";
+import {GeneralSelector} from "../../store/selectors/GeneralSelector";
 
 export class EditorContext extends BaseContext {
     public static actions: HotKeyAction[] = [
@@ -166,6 +169,19 @@ export class EditorContext extends BaseContext {
             action: (event: KeyboardEvent) => {
                 ImageActions.setActiveLabelOnActiveImage(9);
                 EditorActions.fullRender();
+            }
+        },
+        {
+            keyCombo: ["r"],
+            action: (event: KeyboardEvent) => {
+                LabelActions.copyLabelsFromPreviousImage();
+                EditorActions.fullRender();
+            }
+        },
+        {
+            keyCombo: ["m"],
+            action: (event: KeyboardEvent) => {
+                store.dispatch(updateMoveModeStatus(!GeneralSelector.getMoveModeStatus()));
             }
         }
     ];

@@ -4,7 +4,7 @@ import React from 'react';
 import classNames from 'classnames';
 import { AppState } from '../../../store';
 import { connect } from 'react-redux';
-import { updateCrossHairVisibleStatus, updateImageDragModeStatus, updateFixZoomStatus } from '../../../store/general/actionCreators';
+import { updateCrossHairVisibleStatus, updateImageDragModeStatus, updateFixZoomStatus, updateMoveModeStatus } from '../../../store/general/actionCreators';
 import { GeneralSelector } from '../../../store/selectors/GeneralSelector';
 import { ViewPointSettings } from '../../../settings/ViewPointSettings';
 import { ImageButton } from '../../Common/ImageButton/ImageButton';
@@ -67,9 +67,11 @@ interface IProps {
     updateImageDragModeStatusAction: (imageDragMode: boolean) => any;
     updateCrossHairVisibleStatusAction: (crossHairVisible: boolean) => any;
     updateFixZoomStatusAction: (fixZoom: boolean) => any;
+    updateMoveModeStatusAction: (moveMode: boolean) => any;
     imageDragMode: boolean;
     crossHairVisible: boolean;
     fixZoom: boolean;
+    moveMode: boolean;
     activeLabelType: LabelType;
 }
 
@@ -79,9 +81,11 @@ const EditorTopNavigationBar: React.FC<IProps> = (
         updateImageDragModeStatusAction,
         updateCrossHairVisibleStatusAction,
         updateFixZoomStatusAction,
+        updateMoveModeStatusAction,
         imageDragMode,
         crossHairVisible,
         fixZoom,
+        moveMode,
         activeLabelType
     }) => {
     const getClassName = () => {
@@ -108,6 +112,10 @@ const EditorTopNavigationBar: React.FC<IProps> = (
 
     const fixZoomOnClick = () => {
         updateFixZoomStatusAction(!fixZoom);
+    };
+
+    const moveModeOnClick = () => {
+        updateMoveModeStatusAction(!moveMode);
     };
 
     const withAI = (
@@ -199,6 +207,17 @@ const EditorTopNavigationBar: React.FC<IProps> = (
                         fixZoomOnClick
                     )
                 }
+                {
+                    getButtonWithTooltip(
+                        'move-mode',
+                        moveMode ? 'turn-off move mode' : 'turn-on move mode',
+                        'ico/move.png',
+                        'move-mode',
+                        moveMode,
+                        undefined,
+                        moveModeOnClick
+                    )
+                }
             </div>
             {withAI && <div className='ButtonWrapper'>
                 {
@@ -231,7 +250,8 @@ const EditorTopNavigationBar: React.FC<IProps> = (
 const mapDispatchToProps = {
     updateImageDragModeStatusAction: updateImageDragModeStatus,
     updateCrossHairVisibleStatusAction: updateCrossHairVisibleStatus,
-    updateFixZoomStatusAction: updateFixZoomStatus
+    updateFixZoomStatusAction: updateFixZoomStatus,
+    updateMoveModeStatusAction: updateMoveModeStatus
 };
 
 const mapStateToProps = (state: AppState) => ({
@@ -239,6 +259,7 @@ const mapStateToProps = (state: AppState) => ({
     imageDragMode: state.general.imageDragMode,
     crossHairVisible: state.general.crossHairVisible,
     fixZoom: state.general.fixZoom,
+    moveMode: state.general.moveMode,
     activeLabelType: state.labels.activeLabelType
 });
 

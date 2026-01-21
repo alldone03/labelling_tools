@@ -22,6 +22,7 @@ export type GeneralState = {
     projectData: ProjectData;
     zoom: number;
     fixZoom: boolean;
+    moveMode: boolean;
 }
 
 interface UpdateProjectData {
@@ -101,6 +102,13 @@ interface UpdateFixZoomStatus {
     }
 }
 
+interface UpdateMoveModeStatus {
+    type: typeof Action.UPDATE_MOVE_MODE_STATUS,
+    payload: {
+        moveMode: boolean;
+    }
+}
+
 export type GeneralActionTypes = UpdateProjectData
     | UpdateWindowSize
     | UpdateActivePopupType
@@ -112,3 +120,4 @@ export type GeneralActionTypes = UpdateProjectData
     | UpdateZoom
     | UpdatePerClassColoration
     | UpdateFixZoomStatus
+    | UpdateMoveModeStatus

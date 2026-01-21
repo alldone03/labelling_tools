@@ -5,6 +5,8 @@ import {store} from '../../index';
 import {updateImageData, updateImageDataById} from '../../store/labels/actionCreators';
 import {LabelType} from '../../data/enums/LabelType';
 import {LabelUtil} from '../../utils/LabelUtil';
+import { v4 as uuidv4 } from 'uuid';
+
 
 export class LabelActions {
     public static deleteActiveLabel() {
@@ -138,7 +140,52 @@ export class LabelActions {
         }
     }
 
+    public static copyLabelsFromPreviousImage() {
+        const activeImageIndex = LabelsSelector.getActiveImageIndex();
+        if (activeImageIndex <= 0) return;
+
+        const previousImageData = LabelsSelector.getImagesData()[activeImageIndex - 1];
+        const activeImageData = LabelsSelector.getActiveImageData();
+        const activeLabelType = LabelsSelector.getActiveLabelType();
+
+        let newImageData: ImageData = { ...activeImageData };
+
+        switch (activeLabelType) {
+            case LabelType.RECT:
+                const newRects = previousImageData.labelRects.map(rect => ({
+                    ...rect,
+                    id: uuidv4()
+                }));
+                newImageData.labelRects = [...activeImageData.labelRects, ...newRects];
+                break;
+            case LabelType.POINT:
+                const newPoints = previousImageData.labelPoints.map(point => ({
+                    ...point,
+                    id: uuidv4()
+                }));
+                newImageData.labelPoints = [...activeImageData.labelPoints, ...newPoints];
+                break;
+            case LabelType.POLYGON:
+                const newPolygons = previousImageData.labelPolygons.map(polygon => ({
+                    ...polygon,
+                    id: uuidv4()
+                }));
+                newImageData.labelPolygons = [...activeImageData.labelPolygons, ...newPolygons];
+                break;
+            case LabelType.LINE:
+                const newLines = previousImageData.labelLines.map(line => ({
+                    ...line,
+                    id: uuidv4()
+                }));
+                newImageData.labelLines = [...activeImageData.labelLines, ...newLines];
+                break;
+        }
+
+        store.dispatch(updateImageDataById(activeImageData.id, newImageData));
+    }
+
     public static labelExistsInLabelNames(label: string): boolean {
+
         const labelNames: LabelName[] = LabelsSelector.getLabelNames();
         return labelNames
             .map((labelName: LabelName) => labelName.name)
