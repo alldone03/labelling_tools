@@ -121,10 +121,15 @@ class LabelInputField extends Component<IProps, IState> {
         const filteredOptionsCount = this.getFilteredOptions().length;
         // Search input height (30px) + options height
         const height: number = (Math.min(filteredOptionsCount, this.dropdownOptionCount) * this.dropdownOptionHeight) + 34; // + search input
+        const width = Math.max(clientRect.width, 300);
+
+        // Calculate right position: distance from right edge of window to right edge of clientRect
+        const rightPosition = window.innerWidth - clientRect.right;
+
         const style = {
-            width: Math.max(clientRect.width, 150),
+            width,
             height,
-            left: clientRect.left
+            right: Math.max(rightPosition, 10) // Ensure at least 10px margin from window edge
         };
 
         if (window.innerHeight * 2 / 3 < clientRect.top)

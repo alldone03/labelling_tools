@@ -99,7 +99,7 @@ export class AIYOLOObjectDetectionActions {
     public static rejectAllSuggestedRectLabels(imageData: ImageData) {
         const newImageData: ImageData = {
             ...imageData,
-            labelRects: imageData.labelRects.filter((labelRect: LabelRect) => labelRect.status === LabelStatus.ACCEPTED)
+            labelRects: imageData.labelRects.filter((labelRect: LabelRect) => !labelRect.isCreatedByAI)
         };
         store.dispatch(updateImageDataById(newImageData.id, newImageData));
     }

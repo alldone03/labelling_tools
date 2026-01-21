@@ -15,6 +15,7 @@ import {updateLabelNames} from '../../store/labels/actionCreators';
 import {ArrayUtil} from '../../utils/ArrayUtil';
 import {Settings} from '../../settings/Settings';
 import {backendService, Annotation} from '../../services/backendService';
+import {AISelector} from '../../store/selectors/AISelector';
 
 export class AIBackendObjectDetectionActions {
     public static detectRectsForActiveImage(): void {
@@ -23,6 +24,9 @@ export class AIBackendObjectDetectionActions {
     }
 
     public static async detectRects(imageId: string, image: HTMLImageElement): Promise<void> {
+        if (AISelector.isAIDisabled())
+            return;
+
         if (LabelsSelector.getImageDataById(imageId).isVisitedByObjectDetector)
             return;
 
@@ -139,7 +143,7 @@ export class AIBackendObjectDetectionActions {
                 },
                 isVisible: true,
                 isCreatedByAI: true,
-                status: LabelStatus.ACCEPTED,
+                status: LabelStatus.UNDECIDED,
                 suggestedLabel: prediction.class
             }
         })
@@ -158,6 +162,7 @@ export class AIBackendObjectDetectionActions {
         const newImageData: ImageData = {
             ...imageData,
             labelRects: imageData.labelRects.map((labelRect: LabelRect) => {
+                if (!labelRect.isCreatedByAI) return labelRect;
                 const labelName: LabelName = findLast(LabelsSelector.getLabelNames(), {name: labelRect.suggestedLabel});
                 return {
                     ...labelRect,
@@ -172,7 +177,7 @@ export class AIBackendObjectDetectionActions {
     public static rejectAllSuggestedRectLabels(imageData: ImageData) {
         const newImageData: ImageData = {
             ...imageData,
-            labelRects: imageData.labelRects.filter((labelRect: LabelRect) => labelRect.status === LabelStatus.ACCEPTED)
+            labelRects: imageData.labelRects.filter((labelRect: LabelRect) => !labelRect.isCreatedByAI)
         };
         store.dispatch(updateImageDataById(newImageData.id, newImageData));
     }

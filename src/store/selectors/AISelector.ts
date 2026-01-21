@@ -22,6 +22,10 @@ export class AISelector {
         return store.getState().ai.isPoseDetectorLoaded;
     }
 
+    public static isAIBackendObjectDetectorLoaded(): boolean {
+        return store.getState().ai.isAIBackendObjectDetectorLoaded;
+    }
+
     public static isRoboflowAPIModelLoaded(): boolean {
         const roboflowAPIDetails = store.getState().ai.roboflowAPIDetails;
         return (

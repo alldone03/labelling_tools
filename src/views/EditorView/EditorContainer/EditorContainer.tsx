@@ -25,6 +25,7 @@ interface IProps {
     activeContext: ContextType;
     projectType: ProjectType;
     isAIBackendObjectDetectorLoaded: boolean;
+    isAIDisabled: boolean;
 }
 
 const EditorContainer: React.FC<IProps> = (props) => {
@@ -40,10 +41,10 @@ const EditorContainer: React.FC<IProps> = (props) => {
 
     // Auto-trigger backend detection when image changes
     React.useEffect(() => {
-        if (props.isAIBackendObjectDetectorLoaded) {
+        if (props.isAIBackendObjectDetectorLoaded && !props.isAIDisabled) {
             AIBackendObjectDetectionActions.detectRectsForActiveImage();
         }
-    }, [props.activeImageIndex, props.isAIBackendObjectDetectorLoaded]);
+    }, [props.activeImageIndex, props.isAIBackendObjectDetectorLoaded, props.isAIDisabled]);
 
     const calculateEditorSize = (): ISize => {
         if (windowSize) {
@@ -156,7 +157,8 @@ const mapStateToProps = (state: AppState) => ({
     imagesData: state.labels.imagesData,
     activeContext: state.general.activeContext,
     projectType: state.general.projectData.type,
-    isAIBackendObjectDetectorLoaded: state.ai.isAIBackendObjectDetectorLoaded
+    isAIBackendObjectDetectorLoaded: state.ai.isAIBackendObjectDetectorLoaded,
+    isAIDisabled: state.ai.isAIDisabled
 });
 
 export default connect(

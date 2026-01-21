@@ -114,7 +114,7 @@ export class AIPoseDetectionActions {
     public static rejectAllSuggestedPointLabels(imageData: ImageData) {
         const newImageData: ImageData = {
             ...imageData,
-            labelPoints: imageData.labelPoints.filter((labelPoint: LabelPoint) => labelPoint.status === LabelStatus.ACCEPTED)
+            labelPoints: imageData.labelPoints.filter((labelPoint: LabelPoint) => !labelPoint.isCreatedByAI)
         };
         store.dispatch(updateImageDataById(newImageData.id, newImageData));
     }

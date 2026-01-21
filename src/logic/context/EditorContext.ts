@@ -14,6 +14,8 @@ import {LineRenderEngine} from "../render/LineRenderEngine";
 import {store} from "../../index";
 import {updateMoveModeStatus} from "../../store/general/actionCreators";
 import {GeneralSelector} from "../../store/selectors/GeneralSelector";
+import {AIActions} from "../actions/AIActions";
+import {LabelsSelector} from "../../store/selectors/LabelsSelector";
 
 export class EditorContext extends BaseContext {
     public static actions: HotKeyAction[] = [
@@ -182,6 +184,22 @@ export class EditorContext extends BaseContext {
             keyCombo: ["m"],
             action: (event: KeyboardEvent) => {
                 store.dispatch(updateMoveModeStatus(!GeneralSelector.getMoveModeStatus()));
+            }
+        },
+        {
+            keyCombo: ["a"],
+            action: (event: KeyboardEvent) => {
+                const activeImageData = LabelsSelector.getActiveImageData();
+                AIActions.acceptAllSuggestedLabels(activeImageData);
+                EditorActions.fullRender();
+            }
+        },
+        {
+            keyCombo: ["x"],
+            action: (event: KeyboardEvent) => {
+                const activeImageData = LabelsSelector.getActiveImageData();
+                AIActions.rejectAllSuggestedLabels(activeImageData);
+                EditorActions.fullRender();
             }
         }
     ];

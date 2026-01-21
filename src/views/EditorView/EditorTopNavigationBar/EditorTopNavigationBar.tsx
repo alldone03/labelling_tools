@@ -14,6 +14,7 @@ import { LabelType } from '../../../data/enums/LabelType';
 import { AISelector } from '../../../store/selectors/AISelector';
 import { ISize } from '../../../interfaces/ISize';
 import { AIActions } from '../../../logic/actions/AIActions';
+import { updateDisabledAIFlag } from '../../../store/ai/actionCreators';
 import { Fade, styled, Tooltip, tooltipClasses, TooltipProps } from '@mui/material';
 const BUTTON_SIZE: ISize = { width: 30, height: 30 };
 const BUTTON_PADDING: number = 10;
@@ -68,10 +69,12 @@ interface IProps {
     updateCrossHairVisibleStatusAction: (crossHairVisible: boolean) => any;
     updateFixZoomStatusAction: (fixZoom: boolean) => any;
     updateMoveModeStatusAction: (moveMode: boolean) => any;
+    updateDisabledAIFlagAction: (isAIDisabled: boolean) => any;
     imageDragMode: boolean;
     crossHairVisible: boolean;
     fixZoom: boolean;
     moveMode: boolean;
+    isAIDisabled: boolean;
     activeLabelType: LabelType;
 }
 
@@ -82,10 +85,12 @@ const EditorTopNavigationBar: React.FC<IProps> = (
         updateCrossHairVisibleStatusAction,
         updateFixZoomStatusAction,
         updateMoveModeStatusAction,
+        updateDisabledAIFlagAction,
         imageDragMode,
         crossHairVisible,
         fixZoom,
         moveMode,
+        isAIDisabled,
         activeLabelType
     }) => {
     const getClassName = () => {
@@ -118,11 +123,23 @@ const EditorTopNavigationBar: React.FC<IProps> = (
         updateMoveModeStatusAction(!moveMode);
     };
 
+    const aiDisabledOnClick = () => {
+        updateDisabledAIFlagAction(!isAIDisabled);
+    }
+
     const withAI = (
         (activeLabelType === LabelType.RECT && AISelector.isAISSDObjectDetectorModelLoaded()) ||
         (activeLabelType === LabelType.RECT && AISelector.isAIYOLOObjectDetectorModelLoaded()) ||
+        (activeLabelType === LabelType.RECT && AISelector.isAIBackendObjectDetectorLoaded()) ||
         (activeLabelType === LabelType.RECT && AISelector.isRoboflowAPIModelLoaded()) ||
         (activeLabelType === LabelType.POINT && AISelector.isAIPoseDetectorModelLoaded())
+    )
+
+    const isAnyModelLoaded = (
+        AISelector.isAISSDObjectDetectorModelLoaded() ||
+        AISelector.isAIYOLOObjectDetectorModelLoaded() ||
+        AISelector.isAIPoseDetectorModelLoaded() ||
+        AISelector.isAIBackendObjectDetectorLoaded()
     )
 
     return (
@@ -218,6 +235,17 @@ const EditorTopNavigationBar: React.FC<IProps> = (
                         moveModeOnClick
                     )
                 }
+                {
+                    isAnyModelLoaded && getButtonWithTooltip(
+                        'ai-inference',
+                        isAIDisabled ? 'turn-on AI inference' : 'turn-off AI inference',
+                        'ico/ai.png',
+                        'ai-inference',
+                        !isAIDisabled,
+                        undefined,
+                        aiDisabledOnClick
+                    )
+                }
             </div>
             {withAI && <div className='ButtonWrapper'>
                 {
@@ -251,7 +279,8 @@ const mapDispatchToProps = {
     updateImageDragModeStatusAction: updateImageDragModeStatus,
     updateCrossHairVisibleStatusAction: updateCrossHairVisibleStatus,
     updateFixZoomStatusAction: updateFixZoomStatus,
-    updateMoveModeStatusAction: updateMoveModeStatus
+    updateMoveModeStatusAction: updateMoveModeStatus,
+    updateDisabledAIFlagAction: updateDisabledAIFlag
 };
 
 const mapStateToProps = (state: AppState) => ({
@@ -260,6 +289,7 @@ const mapStateToProps = (state: AppState) => ({
     crossHairVisible: state.general.crossHairVisible,
     fixZoom: state.general.fixZoom,
     moveMode: state.general.moveMode,
+    isAIDisabled: state.ai.isAIDisabled,
     activeLabelType: state.labels.activeLabelType
 });
 

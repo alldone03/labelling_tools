@@ -4,8 +4,9 @@ import {AISSDObjectDetectionActions} from './AISSDObjectDetectionActions';
 import {AIPoseDetectionActions} from './AIPoseDetectionActions';
 import {ImageData} from '../../store/labels/types';
 import {AISelector} from '../../store/selectors/AISelector';
-import {AIYOLOObjectDetectionActions} from './AIYOLOObjectDetectionActions';
+import { AIYOLOObjectDetectionActions } from './AIYOLOObjectDetectionActions';
 import { AIRoboflowAPIObjectDetectionActions } from './AIRoboflowAPIObjectDetectionActions';
+import { AIBackendObjectDetectionActions } from './AIBackendObjectDetectionActions';
 
 export class AIActions {
     public static excludeRejectedLabelNames(suggestedLabels: string[], rejectedLabels: string[]): string[] {
@@ -18,10 +19,13 @@ export class AIActions {
     }
 
     public static detect(imageId: string, image: HTMLImageElement): void {
+        if (AISelector.isAIDisabled()) return;
+
         const imageData =  LabelsSelector.getImageDataById(imageId)
         const activeLabelType: LabelType = LabelsSelector.getActiveLabelType();
         const isAIYOLOObjectDetectorModelLoaded = AISelector.isAIYOLOObjectDetectorModelLoaded();
         const isAISSDObjectDetectorModelLoaded = AISelector.isAISSDObjectDetectorModelLoaded();
+        const isAIBackendObjectDetectorLoaded = AISelector.isAIBackendObjectDetectorLoaded();
         const isRoboflowAPIModelLoaded = AISelector.isRoboflowAPIModelLoaded();
         switch (activeLabelType) {
             case LabelType.RECT:
@@ -30,6 +34,9 @@ export class AIActions {
                 }
                 if (isAIYOLOObjectDetectorModelLoaded) {
                     AIYOLOObjectDetectionActions.detectRects(imageId, image);
+                }
+                if (isAIBackendObjectDetectorLoaded) {
+                    AIBackendObjectDetectionActions.detectRects(imageId, image);
                 }
                 if (isRoboflowAPIModelLoaded) {
                     AIRoboflowAPIObjectDetectionActions.detectRects(imageData)
@@ -45,6 +52,7 @@ export class AIActions {
         const activeLabelType: LabelType = LabelsSelector.getActiveLabelType();
         const isAIYOLOObjectDetectorModelLoaded = AISelector.isAIYOLOObjectDetectorModelLoaded();
         const isAISSDObjectDetectorModelLoaded = AISelector.isAISSDObjectDetectorModelLoaded();
+        const isAIBackendObjectDetectorLoaded = AISelector.isAIBackendObjectDetectorLoaded();
         const isRoboflowAPIModelLoaded = AISelector.isRoboflowAPIModelLoaded();
         switch (activeLabelType) {
             case LabelType.RECT:
@@ -53,6 +61,9 @@ export class AIActions {
                 }
                 if (isAIYOLOObjectDetectorModelLoaded) {
                     AIYOLOObjectDetectionActions.rejectAllSuggestedRectLabels(imageData);
+                }
+                if (isAIBackendObjectDetectorLoaded) {
+                    AIBackendObjectDetectionActions.rejectAllSuggestedRectLabels(imageData);
                 }
                 if (isRoboflowAPIModelLoaded) {
                     AIRoboflowAPIObjectDetectionActions.rejectAllSuggestedRectLabels(imageData)
@@ -68,6 +79,7 @@ export class AIActions {
         const activeLabelType: LabelType = LabelsSelector.getActiveLabelType();
         const isAIYOLOObjectDetectorModelLoaded = AISelector.isAIYOLOObjectDetectorModelLoaded();
         const isAISSDObjectDetectorModelLoaded = AISelector.isAISSDObjectDetectorModelLoaded();
+        const isAIBackendObjectDetectorLoaded = AISelector.isAIBackendObjectDetectorLoaded();
         const isRoboflowAPIModelLoaded = AISelector.isRoboflowAPIModelLoaded();
         switch (activeLabelType) {
             case LabelType.RECT:
@@ -76,6 +88,9 @@ export class AIActions {
                 }
                 if (isAIYOLOObjectDetectorModelLoaded) {
                     AIYOLOObjectDetectionActions.acceptAllSuggestedRectLabels(imageData);
+                }
+                if (isAIBackendObjectDetectorLoaded) {
+                    AIBackendObjectDetectionActions.acceptAllSuggestedRectLabels(imageData);
                 }
                 if (isRoboflowAPIModelLoaded) {
                     AIRoboflowAPIObjectDetectionActions.acceptAllSuggestedRectLabels(imageData)
