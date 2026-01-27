@@ -2,4 +2,79 @@
   align-self: stretch;
   flex: 1;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .ImagesListHeader {
+    padding: 10px;
+    background-color: #2c2c2c;
+    border-bottom: 1px solid #3c3c3c;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .TextInput {
+      margin-bottom: 0px;
+      height: auto !important;
+      overflow: visible;
+
+      input {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        padding: 10px 8px 6px 8px;
+        font-size: 13px;
+        color: white;
+
+        &:focus {
+          border-color: #007acc;
+        }
+      }
+
+      label {
+        font-size: 11px;
+        color: #aaa;
+        left: 8px !important;
+        top: -8px !important;
+        pointer-events: none;
+      }
+
+      .Bar {
+        display: none;
+      }
+    }
+
+    .SortControl {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #ccc;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #fff;
+      }
+
+      .SortIcon {
+        font-weight: bold;
+        color: #007acc;
+        min-width: 20px;
+        text-align: center;
+        font-size: 14px;
+      }
+    }
+  }
+
+  .VirtualListWrapper {
+    flex: 1;
+    overflow: hidden;
+  }
 }

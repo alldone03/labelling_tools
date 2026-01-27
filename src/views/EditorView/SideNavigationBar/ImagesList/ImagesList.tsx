@@ -1,17 +1,18 @@
 import React from 'react';
-import {connect} from "react-redux";
-import {LabelType} from "../../../../data/enums/LabelType";
-import {ISize} from "../../../../interfaces/ISize";
-import {AppState} from "../../../../store";
-import {ImageData, LabelPoint, LabelRect} from "../../../../store/labels/types";
-import {VirtualList} from "../../../Common/VirtualList/VirtualList";
+import { connect } from "react-redux";
+import { LabelType } from "../../../../data/enums/LabelType";
+import { ISize } from "../../../../interfaces/ISize";
+import { AppState } from "../../../../store";
+import { ImageData, LabelPoint, LabelRect } from "../../../../store/labels/types";
+import { VirtualList } from "../../../Common/VirtualList/VirtualList";
 import ImagePreview from "../ImagePreview/ImagePreview";
+import TextInput from "../../../Common/TextInput/TextInput";
 import './ImagesList.scss';
-import {ContextManager} from "../../../../logic/context/ContextManager";
-import {ContextType} from "../../../../data/enums/ContextType";
-import {ImageActions} from "../../../../logic/actions/ImageActions";
-import {EventType} from "../../../../data/enums/EventType";
-import {LabelStatus} from "../../../../data/enums/LabelStatus";
+import { ContextManager } from "../../../../logic/context/ContextManager";
+import { ContextType } from "../../../../data/enums/ContextType";
+import { ImageActions } from "../../../../logic/actions/ImageActions";
+import { EventType } from "../../../../data/enums/EventType";
+import { LabelStatus } from "../../../../data/enums/LabelStatus";
 
 interface IProps {
     activeImageIndex: number;
@@ -21,6 +22,8 @@ interface IProps {
 
 interface IState {
     size: ISize;
+    searchQuery: string;
+    sortOrder: 'none' | 'asc' | 'desc';
 }
 
 class ImagesList extends React.Component<IProps, IState> {
@@ -31,6 +34,8 @@ class ImagesList extends React.Component<IProps, IState> {
 
         this.state = {
             size: null,
+            searchQuery: '',
+            sortOrder: 'none'
         }
     }
 
@@ -56,8 +61,10 @@ class ImagesList extends React.Component<IProps, IState> {
         })
     };
 
-    private isImageChecked = (index:number): boolean => {
+    private isImageChecked = (index: number): boolean => {
         const imageData = this.props.imagesData[index]
+        if (!imageData) return false;
+
         switch (this.props.activeLabelType) {
             case LabelType.LINE:
                 return imageData.labelLines.length > 0
@@ -80,34 +87,101 @@ class ImagesList extends React.Component<IProps, IState> {
         ImageActions.getImageByIndex(index)
     };
 
-    private renderImagePreview = (index: number, isScrolling: boolean, isVisible: boolean, style: React.CSSProperties) => {
+    private onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({ searchQuery: event.target.value }, this.updateListSize);
+    };
+
+    private toggleSort = () => {
+        const { sortOrder } = this.state;
+        let nextSortOrder: 'none' | 'asc' | 'desc' = 'none';
+        if (sortOrder === 'none') nextSortOrder = 'desc';
+        else if (sortOrder === 'desc') nextSortOrder = 'asc';
+        else nextSortOrder = 'none';
+        this.setState({ sortOrder: nextSortOrder }, this.updateListSize);
+    };
+
+    private getLabelCount = (imageData: ImageData): number => {
+        return imageData.labelRects.length +
+            imageData.labelPoints.length +
+            imageData.labelLines.length +
+            imageData.labelPolygons.length +
+            imageData.labelNameIds.length;
+    };
+
+    private getProcessedImagesData = () => {
+        const { imagesData } = this.props;
+        const { searchQuery, sortOrder } = this.state;
+
+        let processed = imagesData.map((data, index) => ({ data, index }));
+
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            processed = processed.filter(item =>
+                item.data.fileData.name.toLowerCase().includes(query)
+            );
+        }
+
+        if (sortOrder !== 'none') {
+            processed.sort((a, b) => {
+                const countA = this.getLabelCount(a.data);
+                const countB = this.getLabelCount(b.data);
+                return sortOrder === 'asc' ? countA - countB : countB - countA;
+            });
+        }
+
+        return processed;
+    };
+
+    private renderImagePreview = (index: number, isScrolling: boolean, isVisible: boolean, style: React.CSSProperties, processedImages: { data: ImageData, index: number }[]) => {
+        const item = processedImages[index];
+        if (!item) return null;
+
         return <ImagePreview
-            key={index}
+            key={item.index}
             style={style}
-            size={{width: 150, height: 150}}
+            size={{ width: 150, height: 150 }}
             isScrolling={isScrolling}
-            isChecked={this.isImageChecked(index)}
-            imageData={this.props.imagesData[index]}
-            onClick={() => this.onClickHandler(index)}
-            isSelected={this.props.activeImageIndex === index}
+            isChecked={this.isImageChecked(item.index)}
+            imageData={item.data}
+            onClick={() => this.onClickHandler(item.index)}
+            isSelected={this.props.activeImageIndex === item.index}
         />
     };
 
     public render() {
-        const { size } = this.state;
-        return(
+        const { size, searchQuery, sortOrder } = this.state;
+        const processedImages = this.getProcessedImagesData();
+
+        return (
             <div
                 className="ImagesList"
-                ref={ref => this.imagesListRef = ref}
                 onClick={() => ContextManager.switchCtx(ContextType.LEFT_NAVBAR)}
             >
-                {!!size && <VirtualList
-                    size={size}
-                    childSize={{width: 150, height: 150}}
-                    childCount={this.props.imagesData.length}
-                    childRender={this.renderImagePreview}
-                    overScanHeight={200}
-                />}
+                <div className="ImagesListHeader">
+                    <TextInput
+                        label="Search by name"
+                        isPassword={false}
+                        value={searchQuery}
+                        onChange={this.onSearchChange}
+                        inputStyle={{ color: 'white' }}
+                    />
+                    <div className="SortControl" onClick={this.toggleSort}>
+                        <span>Sort by labels: </span>
+                        <span className="SortIcon">
+                            {sortOrder === 'none' ? '—' : (sortOrder === 'asc' ? '↑' : '↓')}
+                        </span>
+                    </div>
+                </div>
+                <div className="VirtualListWrapper" ref={ref => this.imagesListRef = ref}>
+                    {!!size && <VirtualList
+                        size={size}
+                        childSize={{ width: 150, height: 150 }}
+                        childCount={processedImages.length}
+                        childRender={(idx, isScrolling, isVisible, style) =>
+                            this.renderImagePreview(idx, isScrolling, isVisible, style, processedImages)}
+                        overScanHeight={200}
+                    />}
+                </div>
             </div>
         )
     }
