@@ -48,6 +48,7 @@ class LabelInputField extends Component<IProps, IState> {
     private dropdownMargin: number = 4;
     private dropdownLabel: HTMLDivElement;
     private dropdown: HTMLDivElement;
+    private scrollbars: Scrollbars;
 
     public constructor(props: IProps) {
         super(props);
@@ -88,13 +89,24 @@ class LabelInputField extends Component<IProps, IState> {
     }
 
     private openDropdown = () => {
-        if (LabelsSelector.getLabelNames().length === 0) {
+        const labelNames = LabelsSelector.getLabelNames();
+        if (labelNames.length === 0) {
             this.props.updateActivePopupType(PopupWindowType.UPDATE_LABEL);
         } else {
+            const { value, options } = this.props;
+            let selectedIndex = 0;
+            if (value) {
+                selectedIndex = options.findIndex(option => option.id === value.id);
+                if (selectedIndex === -1) selectedIndex = 0;
+            }
             this.setState({
                 isOpen: true,
                 filterQuery: '',
-                selectedIndex: 0
+                selectedIndex
+            }, () => {
+                if (this.scrollbars) {
+                    this.scrollbars.scrollTop(selectedIndex * this.dropdownOptionHeight);
+                }
             });
             window.addEventListener(EventType.MOUSE_DOWN, this.closeDropdown);
         }
@@ -139,9 +151,11 @@ class LabelInputField extends Component<IProps, IState> {
     };
 
     private getFilteredOptions = () => {
-        return this.props.options.filter((option: LabelName) =>
-            option.name.toLowerCase().includes(this.state.filterQuery.toLowerCase())
-        );
+        return this.props.options.filter((option: LabelName) => {
+            const originalIndex = this.props.options.findIndex(o => o.id === option.id);
+            const labelWithIndex = `${originalIndex + 1} ${option.name}`.toLowerCase();
+            return labelWithIndex.includes(this.state.filterQuery.toLowerCase());
+        });
     };
 
     private selectOption = (id: string) => {
@@ -183,6 +197,7 @@ class LabelInputField extends Component<IProps, IState> {
         const filteredOptions = this.getFilteredOptions();
 
         return filteredOptions.map((option: LabelName, index: number) => {
+            const originalIndex = this.props.options.findIndex(o => o.id === option.id);
             return <div
                 className={classNames('DropdownOption', { 'selected': index === this.state.selectedIndex })}
                 key={option.id}
@@ -192,7 +207,7 @@ class LabelInputField extends Component<IProps, IState> {
                     event.stopPropagation();
                 }}
             >
-                {option.name}
+                {`${originalIndex} ${option.name}`}
             </div>
         });
     };
@@ -254,8 +269,9 @@ class LabelInputField extends Component<IProps, IState> {
                             <div className='DropdownLabel'
                                 ref={ref => this.dropdownLabel = ref}
                                 onClick={this.openDropdown}
+                                title={value ? `${this.props.options.findIndex(o => o.id === value.id)} ${value.name}` : 'Select label'}
                             >
-                                {value ? truncate(value.name, { length: Settings.MAX_DROPDOWN_OPTION_LENGTH }) : 'Select label'}
+                                {value ? truncate(`${this.props.options.findIndex(o => o.id === value.id)} ${value.name}`, { length: Settings.MAX_DROPDOWN_OPTION_LENGTH }) : 'Select label'}
                             </div>
                             {this.state.isOpen && <div
                                 className='Dropdown'
@@ -275,6 +291,7 @@ class LabelInputField extends Component<IProps, IState> {
                                     />
                                 </div>
                                 <Scrollbars
+                                    ref={ref => this.scrollbars = ref}
                                     renderTrackHorizontal={props => <div {...props} className='track-horizontal' />}
                                     style={{ height: 'calc(100% - 34px)' }}
                                 >

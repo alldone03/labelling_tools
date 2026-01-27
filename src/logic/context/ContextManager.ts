@@ -36,6 +36,8 @@ export class ContextManager {
         store.dispatch(updateActiveContext(context));
         switch (context) {
             case ContextType.EDITOR:
+            case ContextType.RIGHT_NAVBAR:
+            case ContextType.LEFT_NAVBAR:
                 ContextManager.actions = EditorContext.getActions();
                 break;
             case ContextType.POPUP:

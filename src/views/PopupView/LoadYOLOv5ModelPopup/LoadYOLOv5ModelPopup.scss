@@ -1,4 +1,4 @@
-@import '../../../settings/Settings';
+@use '../../../settings/Settings' as *;
 
 .load-yolo-v5-model-popup {
   display: flex;

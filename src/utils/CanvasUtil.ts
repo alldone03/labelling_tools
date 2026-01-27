@@ -4,12 +4,16 @@ import {IRect} from "../interfaces/IRect";
 import {ISize} from "../interfaces/ISize";
 
 export class CanvasUtil {
-    public static getMousePositionOnCanvasFromEvent(event: React.MouseEvent<HTMLCanvasElement, MouseEvent> | MouseEvent, canvas: HTMLCanvasElement): IPoint {
+    public static getMousePositionOnCanvasFromEvent(
+        event: React.MouseEvent<HTMLCanvasElement, MouseEvent> | MouseEvent,
+        canvas: HTMLCanvasElement,
+        canvasRect?: DOMRect
+    ): IPoint {
         if (!!canvas && !!event) {
-            const canvasRect: DOMRect = canvas.getBoundingClientRect();
+            const rect = canvasRect || canvas.getBoundingClientRect();
             return {
-                x: event.clientX - canvasRect.left,
-                y: event.clientY - canvasRect.top
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
             }
         }
         return null;

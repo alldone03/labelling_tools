@@ -1,4 +1,4 @@
-@import '../../../settings/Settings';
+@use '../../../settings/Settings' as *;
 
 $secondary-color: white;
 $main-color: transparent;

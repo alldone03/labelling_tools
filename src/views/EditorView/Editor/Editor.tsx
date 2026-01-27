@@ -1,33 +1,33 @@
 import React from 'react';
 import './Editor.scss';
-import {ISize} from '../../../interfaces/ISize';
-import {ImageData, LabelPoint, LabelRect} from '../../../store/labels/types';
-import {FileUtil} from '../../../utils/FileUtil';
-import {AppState} from '../../../store';
-import {connect} from 'react-redux';
-import {updateImageDataById} from '../../../store/labels/actionCreators';
-import {ImageRepository} from '../../../logic/imageRepository/ImageRepository';
-import {LabelType} from '../../../data/enums/LabelType';
-import {PopupWindowType} from '../../../data/enums/PopupWindowType';
-import {CanvasUtil} from '../../../utils/CanvasUtil';
-import {CustomCursorStyle} from '../../../data/enums/CustomCursorStyle';
-import {ImageLoadManager} from '../../../logic/imageRepository/ImageLoadManager';
-import {EventType} from '../../../data/enums/EventType';
-import {EditorData} from '../../../data/EditorData';
-import {EditorModel} from '../../../staticModels/EditorModel';
-import {EditorActions} from '../../../logic/actions/EditorActions';
-import {EditorUtil} from '../../../utils/EditorUtil';
-import {ContextManager} from '../../../logic/context/ContextManager';
-import {ContextType} from '../../../data/enums/ContextType';
+import { ISize } from '../../../interfaces/ISize';
+import { ImageData, LabelPoint, LabelRect } from '../../../store/labels/types';
+import { FileUtil } from '../../../utils/FileUtil';
+import { AppState } from '../../../store';
+import { connect } from 'react-redux';
+import { updateImageDataById } from '../../../store/labels/actionCreators';
+import { ImageRepository } from '../../../logic/imageRepository/ImageRepository';
+import { LabelType } from '../../../data/enums/LabelType';
+import { PopupWindowType } from '../../../data/enums/PopupWindowType';
+import { CanvasUtil } from '../../../utils/CanvasUtil';
+import { CustomCursorStyle } from '../../../data/enums/CustomCursorStyle';
+import { ImageLoadManager } from '../../../logic/imageRepository/ImageLoadManager';
+import { EventType } from '../../../data/enums/EventType';
+import { EditorData } from '../../../data/EditorData';
+import { EditorModel } from '../../../staticModels/EditorModel';
+import { EditorActions } from '../../../logic/actions/EditorActions';
+import { EditorUtil } from '../../../utils/EditorUtil';
+import { ContextManager } from '../../../logic/context/ContextManager';
+import { ContextType } from '../../../data/enums/ContextType';
 import Scrollbars from 'react-custom-scrollbars-2';
-import {ViewPortActions} from '../../../logic/actions/ViewPortActions';
-import {PlatformModel} from '../../../staticModels/PlatformModel';
+import { ViewPortActions } from '../../../logic/actions/ViewPortActions';
+import { PlatformModel } from '../../../staticModels/PlatformModel';
 import LabelControlPanel from '../LabelControlPanel/LabelControlPanel';
-import {IPoint} from '../../../interfaces/IPoint';
-import {RenderEngineUtil} from '../../../utils/RenderEngineUtil';
-import {LabelStatus} from '../../../data/enums/LabelStatus';
-import {isEqual} from 'lodash';
-import {AIActions} from '../../../logic/actions/AIActions';
+import { IPoint } from '../../../interfaces/IPoint';
+import { RenderEngineUtil } from '../../../utils/RenderEngineUtil';
+import { LabelStatus } from '../../../data/enums/LabelStatus';
+import { isEqual } from 'lodash';
+import { AIActions } from '../../../logic/actions/AIActions';
 
 interface IProps {
     size: ISize;
@@ -57,6 +57,18 @@ class Editor extends React.Component<IProps, IState> {
         };
     }
 
+    private renderRequested: boolean = false;
+
+    private requestRender = () => {
+        if (!this.renderRequested) {
+            this.renderRequested = true;
+            requestAnimationFrame(() => {
+                EditorActions.fullRender();
+                this.renderRequested = false;
+            });
+        }
+    }
+
     // =================================================================================================================
     // LIFE CYCLE
     // =================================================================================================================
@@ -64,7 +76,7 @@ class Editor extends React.Component<IProps, IState> {
     public componentDidMount(): void {
         this.mountEventListeners();
 
-        const {imageData, activeLabelType} = this.props;
+        const { imageData, activeLabelType } = this.props;
 
         ContextManager.switchCtx(ContextType.EDITOR);
         EditorActions.mountRenderEnginesAndHelpers(activeLabelType);
@@ -77,7 +89,7 @@ class Editor extends React.Component<IProps, IState> {
     }
 
     public componentDidUpdate(prevProps: Readonly<IProps>, prevState: Readonly<{}>, snapshot?: any): void {
-        const {imageData, activeLabelType} = this.props;
+        const { imageData, activeLabelType } = this.props;
 
         prevProps.imageData.id !== imageData.id && ImageLoadManager.addAndRun(this.loadImage(imageData));
 
@@ -122,7 +134,7 @@ class Editor extends React.Component<IProps, IState> {
                 EditorActions.setLoadingStatus(true);
                 const saveLoadedImagePartial = (image: HTMLImageElement) => this.saveLoadedImage(image, imageData);
                 FileUtil.loadImage(imageData.fileData)
-                    .then((image:HTMLImageElement) => saveLoadedImagePartial(image))
+                    .then((image: HTMLImageElement) => saveLoadedImagePartial(image))
                     .catch((error) => this.handleLoadImageError())
             }
         }
@@ -138,7 +150,7 @@ class Editor extends React.Component<IProps, IState> {
         this.updateModelAndRender()
     };
 
-    private handleLoadImageError = () => {};
+    private handleLoadImageError = () => { };
 
     // =================================================================================================================
     // HELPER METHODS
@@ -152,8 +164,11 @@ class Editor extends React.Component<IProps, IState> {
     };
 
     private update = (event: MouseEvent) => {
+        if (!EditorModel.canvas) return;
+
+        const canvasRect = EditorModel.canvas.getBoundingClientRect();
         const editorData: EditorData = EditorActions.getEditorData(event);
-        EditorModel.mousePositionOnViewPortContent = CanvasUtil.getMousePositionOnCanvasFromEvent(event, EditorModel.canvas);
+        EditorModel.mousePositionOnViewPortContent = CanvasUtil.getMousePositionOnCanvasFromEvent(event, EditorModel.canvas, canvasRect);
         EditorModel.primaryRenderingEngine.update(editorData);
 
         if (this.props.imageDragMode) {
@@ -162,8 +177,11 @@ class Editor extends React.Component<IProps, IState> {
             EditorModel.supportRenderingEngine && EditorModel.supportRenderingEngine.update(editorData);
         }
 
-        !this.props.activePopupType && EditorActions.updateMousePositionIndicator(event);
-        EditorActions.fullRender();
+        if (!this.props.activePopupType) {
+            EditorActions.updateMousePositionIndicator(event, canvasRect);
+        }
+
+        this.requestRender();
     };
 
     private handleZoom = (event: WheelEvent) => {
@@ -185,7 +203,7 @@ class Editor extends React.Component<IProps, IState> {
             return this.props.imageData.labelRects
                 .filter((labelRect: LabelRect) => labelRect.isCreatedByAI && labelRect.status !== LabelStatus.ACCEPTED)
                 .map((labelRect: LabelRect) => {
-                    const positionOnImage: IPoint = {x: labelRect.rect.x, y: labelRect.rect.y};
+                    const positionOnImage: IPoint = { x: labelRect.rect.x, y: labelRect.rect.y };
                     const positionOnViewPort: IPoint = RenderEngineUtil.transferPointFromImageToViewPortContent(positionOnImage, editorData);
                     return <LabelControlPanel
                         position={positionOnViewPort}
@@ -199,7 +217,7 @@ class Editor extends React.Component<IProps, IState> {
             return this.props.imageData.labelPoints
                 .filter((labelPoint: LabelPoint) => labelPoint.isCreatedByAI && labelPoint.status !== LabelStatus.ACCEPTED)
                 .map((labelPoint: LabelPoint) => {
-                    const positionOnImage: IPoint = {x: labelPoint.point.x, y: labelPoint.point.y};
+                    const positionOnImage: IPoint = { x: labelPoint.point.x, y: labelPoint.point.y };
                     const positionOnViewPort: IPoint = RenderEngineUtil.transferPointFromImageToViewPortContent(positionOnImage, editorData);
                     return <LabelControlPanel
                         position={positionOnViewPort}
@@ -212,13 +230,13 @@ class Editor extends React.Component<IProps, IState> {
         else return null;
     };
 
-    private onScrollbarsUpdate = (scrollbarContent)=>{
+    private onScrollbarsUpdate = (scrollbarContent) => {
         const newViewPortContentSize = {
             width: scrollbarContent.scrollWidth,
             height: scrollbarContent.scrollHeight
         };
-        if(!isEqual(newViewPortContentSize, this.state.viewPortSize)) {
-            this.setState({viewPortSize: newViewPortContentSize})
+        if (!isEqual(newViewPortContentSize, this.state.viewPortSize)) {
+            this.setState({ viewPortSize: newViewPortContentSize })
         }
     };
 
@@ -231,8 +249,8 @@ class Editor extends React.Component<IProps, IState> {
             >
                 <Scrollbars
                     ref={ref => EditorModel.viewPortScrollbars = ref}
-                    renderTrackHorizontal={props => <div {...props} className='track-horizontal'/>}
-                    renderTrackVertical={props => <div {...props} className='track-vertical'/>}
+                    renderTrackHorizontal={props => <div {...props} className='track-horizontal' />}
+                    renderTrackVertical={props => <div {...props} className='track-vertical' />}
                     onUpdate={this.onScrollbarsUpdate}
                 >
                     <div

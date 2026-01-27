@@ -1,4 +1,4 @@
-@import 'src/settings/Settings';
+@use 'src/settings/Settings' as *;
 
 $messageWidth: 400px;
 $messageHeight: 200px;

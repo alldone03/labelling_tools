@@ -54,6 +54,12 @@ export default ({ mode }: UserConfig): UserConfigExport => {
       logOverride: { 'this-is-undefined-in-esm': 'silent' }
     },
     css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern-compiler',
+          silenceDeprecations: ['legacy-js-api', 'import'],
+        },
+      },
       modules: {
         generateScopedName: mode === 'development' ? '[name]__[local]___[hash:base64:5]' : '[hash:base64:8]',
         scopeBehaviour: 'local',

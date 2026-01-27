@@ -1,4 +1,4 @@
-@import '../../../settings/Settings';
+@use '../../../settings/Settings' as *;
 
 .GenericYesNoPopup {
   max-height: 600px;

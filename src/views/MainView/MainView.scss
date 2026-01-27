@@ -1,4 +1,4 @@
-@import '../../settings/_Settings';
+@use '../../settings/_Settings' as *;
 
 .MainView {
   position: absolute;

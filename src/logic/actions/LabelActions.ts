@@ -2,7 +2,7 @@ import {LabelsSelector} from '../../store/selectors/LabelsSelector';
 import {ImageData, LabelLine, LabelName, LabelPoint, LabelPolygon, LabelRect} from '../../store/labels/types';
 import {filter} from 'lodash';
 import {store} from '../../index';
-import {updateImageData, updateImageDataById} from '../../store/labels/actionCreators';
+import {updateActiveLabelId, updateImageData, updateImageDataById} from '../../store/labels/actionCreators';
 import {LabelType} from '../../data/enums/LabelType';
 import {LabelUtil} from '../../utils/LabelUtil';
 import { v4 as uuidv4 } from 'uuid';
@@ -12,7 +12,10 @@ export class LabelActions {
     public static deleteActiveLabel() {
         const activeImageData: ImageData = LabelsSelector.getActiveImageData();
         const activeLabelId: string = LabelsSelector.getActiveLabelId();
-        LabelActions.deleteImageLabelById(activeImageData.id, activeLabelId);
+        if (activeLabelId) {
+            LabelActions.deleteImageLabelById(activeImageData.id, activeLabelId);
+            store.dispatch(updateActiveLabelId(null));
+        }
     }
 
     public static deleteImageLabelById(imageId: string, labelId: string) {
@@ -25,6 +28,12 @@ export class LabelActions {
                 break;
             case LabelType.POLYGON:
                 LabelActions.deletePolygonLabelById(imageId, labelId);
+                break;
+            case LabelType.LINE:
+                LabelActions.deleteLineLabelById(imageId, labelId);
+                break;
+            case LabelType.IMAGE_RECOGNITION:
+                LabelActions.deleteTagLabelById(imageId, labelId);
                 break;
         }
     }
@@ -68,6 +77,17 @@ export class LabelActions {
             ...imageData,
             labelPolygons: filter(imageData.labelPolygons, (currentLabel: LabelPolygon) => {
                 return currentLabel.id !== labelPolygonId;
+            })
+        };
+        store.dispatch(updateImageDataById(imageData.id, newImageData));
+    }
+
+    public static deleteTagLabelById(imageId: string, labelNameId: string) {
+        const imageData: ImageData = LabelsSelector.getImageDataById(imageId);
+        const newImageData = {
+            ...imageData,
+            labelNameIds: filter(imageData.labelNameIds, (id: string) => {
+                return id !== labelNameId;
             })
         };
         store.dispatch(updateImageDataById(imageData.id, newImageData));

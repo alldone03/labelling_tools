@@ -105,14 +105,17 @@ export class EditorActions {
     // HELPERS
     // =================================================================================================================
 
-    public static updateMousePositionIndicator(event: React.MouseEvent<HTMLCanvasElement, MouseEvent> | MouseEvent) {
+    public static updateMousePositionIndicator(
+        event: React.MouseEvent<HTMLCanvasElement, MouseEvent> | MouseEvent,
+        canvasRect?: DOMRect
+    ) {
         if (!EditorModel.image || !EditorModel.canvas) {
             EditorModel.mousePositionIndicator.style.display = "none";
             EditorModel.cursor.style.display = "none";
             return;
         }
 
-        const mousePositionOverViewPortContent: IPoint = CanvasUtil.getMousePositionOnCanvasFromEvent(event, EditorModel.canvas);
+        const mousePositionOverViewPortContent: IPoint = CanvasUtil.getMousePositionOnCanvasFromEvent(event, EditorModel.canvas, canvasRect);
         const viewPortContentScrollPosition: IPoint = ViewPortActions.getAbsoluteScrollPosition();
         const viewPortContentImageRect: IRect = ViewPortActions.calculateViewPortContentImageRect();
         const mousePositionOverViewPort: IPoint = PointUtil.subtract(mousePositionOverViewPortContent, viewPortContentScrollPosition);
