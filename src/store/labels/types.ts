@@ -74,6 +74,11 @@ export type LabelsState = {
     imagesData: ImageData[];
     firstLabelCreatedFlag: boolean;
     labels: LabelName[];
+    imageSearchQuery: string;
+    labelSearchQuery: string;
+    imageSortOrder: 'none' | 'asc' | 'desc';
+    selectedLabelIds: string[];
+    reverseCheckmarkLogic: boolean;
 }
 
 interface UpdateActiveImageIndex {
@@ -147,6 +152,17 @@ interface UpdateFirstLabelCreatedFlag {
     }
 }
 
+interface UpdateImagesListFilters {
+    type: typeof Action.UPDATE_IMAGES_LIST_FILTERS;
+    payload: {
+        imageSearchQuery?: string;
+        labelSearchQuery?: string;
+        imageSortOrder?: 'none' | 'asc' | 'desc';
+        selectedLabelIds?: string[];
+        reverseCheckmarkLogic?: boolean;
+    }
+}
+
 export type LabelsActionTypes = UpdateActiveImageIndex
     | UpdateActiveLabelNameId
     | UpdateActiveLabelType
@@ -157,4 +173,5 @@ export type LabelsActionTypes = UpdateActiveImageIndex
     | UpdateActiveLabelId
     | UpdateHighlightedLabelId
     | UpdateFirstLabelCreatedFlag
+    | UpdateImagesListFilters
 

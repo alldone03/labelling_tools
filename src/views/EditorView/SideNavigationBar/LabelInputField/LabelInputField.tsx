@@ -153,7 +153,7 @@ class LabelInputField extends Component<IProps, IState> {
     private getFilteredOptions = () => {
         return this.props.options.filter((option: LabelName) => {
             const originalIndex = this.props.options.findIndex(o => o.id === option.id);
-            const labelWithIndex = `${originalIndex + 1} ${option.name}`.toLowerCase();
+            const labelWithIndex = `${originalIndex} ${option.name}`.toLowerCase();
             return labelWithIndex.includes(this.state.filterQuery.toLowerCase());
         });
     };
@@ -207,7 +207,7 @@ class LabelInputField extends Component<IProps, IState> {
                     event.stopPropagation();
                 }}
             >
-                {`${originalIndex} ${option.name}`}
+                {`${originalIndex}. ${option.name}`}
             </div>
         });
     };
@@ -269,9 +269,9 @@ class LabelInputField extends Component<IProps, IState> {
                             <div className='DropdownLabel'
                                 ref={ref => this.dropdownLabel = ref}
                                 onClick={this.openDropdown}
-                                title={value ? `${this.props.options.findIndex(o => o.id === value.id)} ${value.name}` : 'Select label'}
+                                title={value ? `${this.props.options.findIndex(o => o.id === value.id)}. ${value.name}` : 'Select label'}
                             >
-                                {value ? truncate(`${this.props.options.findIndex(o => o.id === value.id)} ${value.name}`, { length: Settings.MAX_DROPDOWN_OPTION_LENGTH }) : 'Select label'}
+                                {value ? truncate(`${this.props.options.findIndex(o => o.id === value.id)}. ${value.name}`, { length: Settings.MAX_DROPDOWN_OPTION_LENGTH }) : 'Select label'}
                             </div>
                             {this.state.isOpen && <div
                                 className='Dropdown'

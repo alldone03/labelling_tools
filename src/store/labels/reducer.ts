@@ -9,7 +9,12 @@ const initialState: LabelsState = {
     highlightedLabelId: null,
     imagesData: [],
     firstLabelCreatedFlag: false,
-    labels: []
+    labels: [],
+    imageSearchQuery: '',
+    labelSearchQuery: '',
+    imageSortOrder: 'none',
+    selectedLabelIds: [],
+    reverseCheckmarkLogic: false
 };
 
 export function labelsReducer(
@@ -17,6 +22,12 @@ export function labelsReducer(
     action: LabelsActionTypes
 ): LabelsState {
     switch (action.type) {
+        case Action.UPDATE_IMAGES_LIST_FILTERS: {
+            return {
+                ...state,
+                ...action.payload
+            }
+        }
         case Action.UPDATE_ACTIVE_IMAGE_INDEX: {
             return {
                 ...state,

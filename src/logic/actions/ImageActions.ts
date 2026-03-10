@@ -22,12 +22,22 @@ import { remove } from "lodash";
 export class ImageActions {
   public static getPreviousImage(): void {
     const currentImageIndex: number = LabelsSelector.getActiveImageIndex();
-    ImageActions.getImageByIndex(currentImageIndex - 1);
+    const processedImages = LabelsSelector.getProcessedImages();
+    const currentProcessedIndex = processedImages.findIndex(item => item.index === currentImageIndex);
+    
+    if (currentProcessedIndex > 0) {
+      ImageActions.getImageByIndex(processedImages[currentProcessedIndex - 1].index);
+    }
   }
 
   public static getNextImage(): void {
     const currentImageIndex: number = LabelsSelector.getActiveImageIndex();
-    ImageActions.getImageByIndex(currentImageIndex + 1);
+    const processedImages = LabelsSelector.getProcessedImages();
+    const currentProcessedIndex = processedImages.findIndex(item => item.index === currentImageIndex);
+    
+    if (currentProcessedIndex < processedImages.length - 1) {
+      ImageActions.getImageByIndex(processedImages[currentProcessedIndex + 1].index);
+    }
   }
 
   public static getImageByIndex(index: number): void {

@@ -92,3 +92,16 @@ export function updateFirstLabelCreatedFlag(firstLabelCreatedFlag: boolean): Lab
         }
     }
 }
+
+export function updateImagesListFilters(payload: {
+    imageSearchQuery?: string;
+    labelSearchQuery?: string;
+    imageSortOrder?: 'none' | 'asc' | 'desc';
+    selectedLabelIds?: string[];
+    reverseCheckmarkLogic?: boolean;
+}): LabelsActionTypes {
+    return {
+        type: Action.UPDATE_IMAGES_LIST_FILTERS,
+        payload
+    };
+}
