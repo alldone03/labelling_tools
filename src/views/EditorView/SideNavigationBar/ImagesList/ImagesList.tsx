@@ -3,7 +3,7 @@ import { connect } from "react-redux";
 import { LabelType } from "../../../../data/enums/LabelType";
 import { ISize } from "../../../../interfaces/ISize";
 import { AppState } from "../../../../store";
-import { ImageData, LabelPoint, LabelRect } from "../../../../store/labels/types";
+import { ImageData, LabelPoint, LabelRect, LabelName } from "../../../../store/labels/types";
 import { VirtualList } from "../../../Common/VirtualList/VirtualList";
 import ImagePreview from "../ImagePreview/ImagePreview";
 import TextInput from "../../../Common/TextInput/TextInput";
@@ -18,12 +18,16 @@ interface IProps {
     activeImageIndex: number;
     imagesData: ImageData[];
     activeLabelType: LabelType;
+    labels: LabelName[];
 }
 
 interface IState {
     size: ISize;
     searchQuery: string;
+    labelSearchQuery: string;
     sortOrder: 'none' | 'asc' | 'desc';
+    selectedLabelIds: string[];
+    reverseCheckmarkLogic: boolean;
 }
 
 class ImagesList extends React.Component<IProps, IState> {
@@ -35,7 +39,10 @@ class ImagesList extends React.Component<IProps, IState> {
         this.state = {
             size: null,
             searchQuery: '',
-            sortOrder: 'none'
+            labelSearchQuery: '',
+            sortOrder: 'none',
+            selectedLabelIds: [],
+            reverseCheckmarkLogic: false
         }
     }
 
@@ -65,22 +72,25 @@ class ImagesList extends React.Component<IProps, IState> {
         const imageData = this.props.imagesData[index]
         if (!imageData) return false;
 
+        let hasLabel = false;
         switch (this.props.activeLabelType) {
             case LabelType.LINE:
-                return imageData.labelLines.length > 0
+                hasLabel = imageData.labelLines.length > 0; break;
             case LabelType.IMAGE_RECOGNITION:
-                return imageData.labelNameIds.length > 0
+                hasLabel = imageData.labelNameIds.length > 0; break;
             case LabelType.POINT:
-                return imageData.labelPoints
+                hasLabel = imageData.labelPoints
                     .filter((labelPoint: LabelPoint) => labelPoint.status === LabelStatus.ACCEPTED)
-                    .length > 0
+                    .length > 0; break;
             case LabelType.POLYGON:
-                return imageData.labelPolygons.length > 0
+                hasLabel = imageData.labelPolygons.length > 0; break;
             case LabelType.RECT:
-                return imageData.labelRects
+                hasLabel = imageData.labelRects
                     .filter((labelRect: LabelRect) => labelRect.status === LabelStatus.ACCEPTED)
-                    .length > 0
+                    .length > 0; break;
         }
+
+        return this.state.reverseCheckmarkLogic ? !hasLabel : hasLabel;
     };
 
     private onClickHandler = (index: number) => {
@@ -89,6 +99,14 @@ class ImagesList extends React.Component<IProps, IState> {
 
     private onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({ searchQuery: event.target.value }, this.updateListSize);
+    };
+
+    private onLabelSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        this.setState({ labelSearchQuery: event.target.value }, this.updateListSize);
+    };
+
+    private toggleCheckmarkLogic = () => {
+        this.setState({ reverseCheckmarkLogic: !this.state.reverseCheckmarkLogic });
     };
 
     private toggleSort = () => {
@@ -100,6 +118,14 @@ class ImagesList extends React.Component<IProps, IState> {
         this.setState({ sortOrder: nextSortOrder }, this.updateListSize);
     };
 
+    private handleLabelToggle = (labelId: string) => {
+        const { selectedLabelIds } = this.state;
+        const nextSelectedLabelIds = selectedLabelIds.includes(labelId)
+            ? selectedLabelIds.filter(id => id !== labelId)
+            : [...selectedLabelIds, labelId];
+        this.setState({ selectedLabelIds: nextSelectedLabelIds }, this.updateListSize);
+    };
+
     private getLabelCount = (imageData: ImageData): number => {
         return imageData.labelRects.length +
             imageData.labelPoints.length +
@@ -109,8 +135,8 @@ class ImagesList extends React.Component<IProps, IState> {
     };
 
     private getProcessedImagesData = () => {
-        const { imagesData } = this.props;
-        const { searchQuery, sortOrder } = this.state;
+        const { imagesData, activeLabelType } = this.props;
+        const { searchQuery, sortOrder, selectedLabelIds, reverseCheckmarkLogic } = this.state;
 
         let processed = imagesData.map((data, index) => ({ data, index }));
 
@@ -119,6 +145,42 @@ class ImagesList extends React.Component<IProps, IState> {
             processed = processed.filter(item =>
                 item.data.fileData.name.toLowerCase().includes(query)
             );
+        }
+
+        const getHasLabel = (data: ImageData, labelIds: string[]) => {
+            return (
+                data.labelRects.some(r => labelIds.includes(r.labelId) && r.status === LabelStatus.ACCEPTED) ||
+                data.labelPoints.some(p => labelIds.includes(p.labelId) && p.status === LabelStatus.ACCEPTED) ||
+                data.labelPolygons.some(p => labelIds.includes(p.labelId)) ||
+                data.labelLines.some(l => labelIds.includes(l.labelId)) ||
+                data.labelNameIds.some(id => labelIds.includes(id))
+            );
+        };
+
+        const getHasAnyLabelOfType = (data: ImageData) => {
+            switch (activeLabelType) {
+                case LabelType.RECT: return data.labelRects.some(r => r.status === LabelStatus.ACCEPTED);
+                case LabelType.POINT: return data.labelPoints.some(p => p.status === LabelStatus.ACCEPTED);
+                case LabelType.POLYGON: return data.labelPolygons.length > 0;
+                case LabelType.LINE: return data.labelLines.length > 0;
+                case LabelType.IMAGE_RECOGNITION: return data.labelNameIds.length > 0;
+                default: return false;
+            }
+        };
+
+        if (reverseCheckmarkLogic) {
+            if (selectedLabelIds.length === 0) {
+                // Show ONLY images that don't have any labels of the active type
+                processed = processed.filter(item => !getHasAnyLabelOfType(item.data));
+            } else {
+                // Show ONLY images that DON'T have any of the selected labels
+                processed = processed.filter(item => !getHasLabel(item.data, selectedLabelIds));
+            }
+        } else {
+            if (selectedLabelIds.length > 0) {
+                // Show ONLY images that HAVE any of the selected labels
+                processed = processed.filter(item => getHasLabel(item.data, selectedLabelIds));
+            }
         }
 
         if (sortOrder !== 'none') {
@@ -149,8 +211,15 @@ class ImagesList extends React.Component<IProps, IState> {
     };
 
     public render() {
-        const { size, searchQuery, sortOrder } = this.state;
+        const { labels } = this.props;
+        const { size, searchQuery, labelSearchQuery, sortOrder, selectedLabelIds, reverseCheckmarkLogic } = this.state;
         const processedImages = this.getProcessedImagesData();
+
+        const filteredLabels = labels.filter((label, index) => {
+            if (!labelSearchQuery) return true;
+            const query = labelSearchQuery.toLowerCase();
+            return label.name.toLowerCase().includes(query) || index.toString() === query;
+        });
 
         return (
             <div
@@ -165,8 +234,56 @@ class ImagesList extends React.Component<IProps, IState> {
                         onChange={this.onSearchChange}
                         inputStyle={{ color: 'white' }}
                     />
+
+                    <div className="LabelFilter">
+                        <div className="LabelFilterHeader">
+                            <div className="LabelFilterTitle">Filter by labels:</div>
+                            <div
+                                className={`ReverseLogicToggle ${reverseCheckmarkLogic ? 'active' : ''}`}
+                                onClick={this.toggleCheckmarkLogic}
+                                title="Reverse checkmark logic (Labeled vs Unlabeled)"
+                            >
+                                ⇄
+                            </div>
+                        </div>
+
+                        <div className="LabelSearchWrapper">
+                            <TextInput
+                                label="Search labels (by name or index)"
+                                isPassword={false}
+                                value={labelSearchQuery}
+                                onChange={this.onLabelSearchChange}
+                                inputStyle={{ color: 'white', fontSize: '12px' }}
+                            />
+                        </div>
+
+                        <div className="LabelList">
+                            {filteredLabels.map(label => {
+                                const index = labels.findIndex(l => l.id === label.id);
+                                return (
+                                    <div
+                                        key={label.id}
+                                        className={`LabelItem ${selectedLabelIds.includes(label.id) ? 'active' : ''}`}
+                                        onClick={() => this.handleLabelToggle(label.id)}
+                                    >
+                                        <div className="Checkbox">
+                                            {selectedLabelIds.includes(label.id) && <span className="CheckMark">✓</span>}
+                                        </div>
+                                        <span className="LabelName">
+                                            <span className="LabelIndex">{index}</span> {label.name}
+                                        </span>
+                                        <div
+                                            className="LabelColor"
+                                            style={{ backgroundColor: label.color }}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
                     <div className="SortControl" onClick={this.toggleSort}>
-                        <span>Sort by labels: </span>
+                        <span>Sort by count: </span>
                         <span className="SortIcon">
                             {sortOrder === 'none' ? '—' : (sortOrder === 'asc' ? '↑' : '↓')}
                         </span>
@@ -192,7 +309,8 @@ const mapDispatchToProps = {};
 const mapStateToProps = (state: AppState) => ({
     activeImageIndex: state.labels.activeImageIndex,
     imagesData: state.labels.imagesData,
-    activeLabelType: state.labels.activeLabelType
+    activeLabelType: state.labels.activeLabelType,
+    labels: state.labels.labels
 });
 
 export default connect(
