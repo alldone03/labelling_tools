@@ -32,7 +32,7 @@ interface IState {
 class ImagePreview extends React.Component<IProps, IState> {
     private isLoading: boolean = false;
 
-    constructor(props) {
+    constructor(props: IProps) {
         super(props);
 
         this.state = {
@@ -44,7 +44,7 @@ class ImagePreview extends React.Component<IProps, IState> {
         ImageLoadManager.addAndRun(this.loadImage(this.props.imageData, this.props.isScrolling));
     }
 
-    public componentWillUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>, nextContext: any): void {
+    public componentWillUpdate(nextProps: Readonly<IProps>): void {
         if (this.props.imageData.id !== nextProps.imageData.id) {
             if (nextProps.imageData.loadStatus) {
                 ImageLoadManager.addAndRun(this.loadImage(nextProps.imageData, nextProps.isScrolling));
@@ -59,12 +59,13 @@ class ImagePreview extends React.Component<IProps, IState> {
         }
     }
 
-    shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>, nextContext: any): boolean {
+    shouldComponentUpdate(nextProps: Readonly<IProps>, nextState: Readonly<IState>): boolean {
         return (
             this.props.imageData.id !== nextProps.imageData.id ||
             this.state.image !== nextState.image ||
             this.props.isSelected !== nextProps.isSelected ||
-            this.props.isChecked !== nextProps.isChecked
+            this.props.isChecked !== nextProps.isChecked ||
+            this.props.size.width !== nextProps.size.width
         )
     }
 
@@ -98,10 +99,10 @@ class ImagePreview extends React.Component<IProps, IState> {
         const { size } = this.props;
 
         const containerRect: IRect = {
-            x: 0.15 * size.width,
-            y: 0.15 * size.height,
-            width: 0.7 * size.width,
-            height: 0.7 * size.height
+            x: 0.05 * size.height,
+            y: 0.05 * size.height,
+            width: 0.9 * size.height,
+            height: 0.9 * size.height
         };
 
         const imageRect: IRect = {
@@ -137,47 +138,62 @@ class ImagePreview extends React.Component<IProps, IState> {
         const {
             isChecked,
             style,
-            onClick
+            onClick,
+            imageData,
+            size
         } = this.props;
+
+        const isListMode = size.width > 200;
 
         return (
             <div
-                className={this.getClassName()}
+                className={classNames(this.getClassName(), { "list-mode": isListMode })}
                 style={style}
                 onClick={onClick ? onClick : undefined}
             >
-                {(!!this.state.image) ?
-                    [
-                        <div
-                            className="Foreground"
-                            key={"Foreground"}
-                            style={this.getStyle()}
-                        >
-                            <img
-                                className="Image"
-                                draggable={false}
-                                src={this.state.image.src}
-                                alt={this.state.image.alt}
-                                style={{ ...this.getStyle(), left: 0, top: 0 }}
+                <div className="PreviewContent">
+                    {(!!this.state.image) ?
+                        <div className="ImageWrapper">
+                            <div
+                                className="Foreground"
+                                style={this.getStyle()}
+                            >
+                                <img
+                                    className="Image"
+                                    draggable={false}
+                                    src={this.state.image.src}
+                                    alt={this.state.image.alt}
+                                    style={{ ...this.getStyle(), left: 0, top: 0 }}
+                                />
+                                {isChecked && <img
+                                    className="CheckBox"
+                                    draggable={false}
+                                    src={"ico/ok.png"}
+                                    alt={"checkbox"}
+                                />}
+                            </div>
+                            <div
+                                className="Background"
+                                style={this.getStyle()}
                             />
-                            {isChecked && <img
-                                className="CheckBox"
-                                draggable={false}
-                                src={"ico/ok.png"}
-                                alt={"checkbox"}
-                            />}
-                        </div>,
-                        <div
-                            className="Background"
-                            key={"Background"}
-                            style={this.getStyle()}
-                        />
-                    ] :
-                    <ClipLoader
-                        size={30}
-                        color={CSSHelper.getLeadingColor()}
-                        loading={true}
-                    />}
+                        </div> :
+                        <div className="LoaderWrapper">
+                            <ClipLoader
+                                size={30}
+                                color={CSSHelper.getLeadingColor()}
+                                loading={true}
+                            />
+                        </div>
+                    }
+                    {isListMode && (
+                        <div className="ImageInfo">
+                            <div className="ImageName">{imageData.fileData.name}</div>
+                            <div className="ImageDetails">
+                                {imageData.labelRects.length + imageData.labelPoints.length} labels
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>)
     }
 }
@@ -191,4 +207,4 @@ const mapStateToProps = (state: AppState) => ({});
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(ImagePreview);
+)(ImagePreview as any);

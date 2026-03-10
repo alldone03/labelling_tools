@@ -38,7 +38,7 @@ interface IState {
 class ImagesList extends React.Component<IProps, IState> {
     private imagesListRef: HTMLDivElement;
 
-    constructor(props) {
+    constructor(props: IProps) {
         super(props);
 
         this.state = {
@@ -128,12 +128,13 @@ class ImagesList extends React.Component<IProps, IState> {
 
     private renderImagePreview = (index: number, isScrolling: boolean, isVisible: boolean, style: React.CSSProperties, processedImages: { data: ImageData, index: number }[]) => {
         const item = processedImages[index];
-        if (!item) return null;
+        const { size } = this.state;
+        if (!item || !size) return null;
 
         return <ImagePreview
             key={item.index}
             style={style}
-            size={{ width: 150, height: 150 }}
+            size={{ width: size.width, height: 160 }}
             isScrolling={isScrolling}
             isChecked={this.isImageChecked(item.index)}
             imageData={item.data}
@@ -224,7 +225,7 @@ class ImagesList extends React.Component<IProps, IState> {
                 <div className="VirtualListWrapper" ref={ref => this.imagesListRef = ref}>
                     {!!size && <VirtualList
                         size={size}
-                        childSize={{ width: 150, height: 150 }}
+                        childSize={{ width: size.width, height: 160 }}
                         childCount={processedImages.length}
                         childRender={(idx, isScrolling, isVisible, style) =>
                             this.renderImagePreview(idx, isScrolling, isVisible, style, processedImages)}
@@ -256,4 +257,4 @@ const mapStateToProps = (state: AppState) => ({
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(ImagesList);
+)(ImagesList as any);
